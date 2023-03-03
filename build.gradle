@@ -45,7 +45,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     implementation 'niteknightt.chess:common:0.2'
-    implementation 'niteknightt.chess:uciclientmod:0.3'
+    implementation 'niteknightt.chess:uciclientmod:0.4'
     implementation 'niteknightt.chess:gameplay:0.2'
     implementation 'niteknightt.chess:lichessapi:0.2'
     implementation 'com.google.code.gson:gson:2.10.1'
@@ -70,7 +70,7 @@ publishing {
         gpr(MavenPublication) {
             groupId='niteknightt.chess'
             artifactId='testbot'
-            version='0.1'
+            version='0.2'
             from(components.java)
         }
     }
