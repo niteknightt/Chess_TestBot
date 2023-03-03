@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'niteknightt.chess'
+version '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+repositories {
+    maven {
+        url = uri("https://maven.pkg.github.com/niteknightt/chess_common")
+        credentials {
+            username = System.getenv("NN_GITHUB_USER")
+            password = System.getenv("NN_GITHUB_ACCESS_TOKEN")
+        }
+    }
+    maven {
+        url = uri("https://maven.pkg.github.com/niteknightt/chess_uciclientmod")
+        credentials {
+            username = System.getenv("NN_GITHUB_USER")
+            password = System.getenv("NN_GITHUB_ACCESS_TOKEN")
+        }
+    }
+    maven {
+        url = uri("https://maven.pkg.github.com/niteknightt/chess_gameplay")
+        credentials {
+            username = System.getenv("NN_GITHUB_USER")
+            password = System.getenv("NN_GITHUB_ACCESS_TOKEN")
+        }
+    }
+    maven {
+        url = uri("https://maven.pkg.github.com/niteknightt/chess_lichessapi")
+        credentials {
+            username = System.getenv("NN_GITHUB_USER")
+            password = System.getenv("NN_GITHUB_ACCESS_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation 'niteknightt.chess:common:0.2'
+    implementation 'niteknightt.chess:uciclientmod:0.3'
+    implementation 'niteknightt.chess:gameplay:0.2'
+    implementation 'niteknightt.chess:lichessapi:0.2'
+    implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/niteknightt/chess_testbot")
+            credentials {
+                username = System.getenv("NN_GITHUB_USER")
+                password = System.getenv("NN_GITHUB_ACCESS_TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            groupId='niteknightt.chess'
+            artifactId='testbot'
+            version='0.1'
+            from(components.java)
+        }
+    }
+}
