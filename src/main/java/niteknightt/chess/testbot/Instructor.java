@@ -1,6 +1,6 @@
 package niteknightt.chess.testbot;
 
-import niteknightt.chess.common.Logger;
+import niteknightt.chess.common.AppLogger;
 import niteknightt.chess.gameplay.Board;
 import niteknightt.chess.gameplay.Move;
 import niteknightt.chess.lichessapi.LichessApiException;
@@ -27,7 +27,7 @@ public class Instructor {
             movesAvailableForChallenger = game.getMoveSelector().getAllMoves(gameBoardClone);
         }
         catch (Exception e) {
-            Logger.error("Failed to get available moves for challenger");
+            AppLogger.getInstance().error("Failed to get available moves for challenger");
             return false;
         }
 
@@ -50,7 +50,7 @@ public class Instructor {
 
         // Handle when the move is not found.
         if (challengerMoveIndex == -1) {
-            Logger.error("Failed to find challenger move in list of available moves");
+            AppLogger.getInstance().error("Failed to find challenger move in list of available moves");
             return false;
         }
 
@@ -114,7 +114,7 @@ public class Instructor {
             LichessInterface.writeChat(game.getGameId(), sb.toString());
         }
         catch (LichessApiException e) {
-            Logger.error("Got LichessApiException while trying to write move evaluation to chat");
+            AppLogger.getInstance().error("Got LichessApiException while trying to write move evaluation to chat");
         }
 
         return true;

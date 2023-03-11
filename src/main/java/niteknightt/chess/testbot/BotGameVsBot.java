@@ -8,8 +8,8 @@ import niteknightt.chess.lichessapi.LichessInterface;
 
 public class BotGameVsBot extends BotGame {
 
-    public BotGameVsBot(LichessChallenge challenge, GameLogger log) {
-        super(challenge, log);
+    public BotGameVsBot(LichessChallenge challenge) {
+        super(challenge);
     }
 
     @Override

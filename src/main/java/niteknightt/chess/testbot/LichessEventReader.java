@@ -1,7 +1,7 @@
 package niteknightt.chess.testbot;
 
 import com.google.gson.Gson;
-import niteknightt.chess.common.Logger;
+import niteknightt.chess.common.AppLogger;
 import niteknightt.chess.lichessapi.LichessEnums;
 import niteknightt.chess.lichessapi.LichessEvent;
 import niteknightt.chess.lichessapi.LichessInterface;
@@ -49,21 +49,21 @@ public class LichessEventReader implements Runnable {
             event = new Gson().fromJson(eventString, LichessEvent.class);
         }
         catch (Exception e) {
-            System.out.println("Exception while parsing event -- the event string is below");
-            System.out.println(eventString);
-            System.out.println(e.getMessage());
-            System.out.println(e.getStackTrace());
+            AppLogger.getInstance().error("Exception while parsing event -- the event string is below");
+            AppLogger.getInstance().error(eventString);
+            AppLogger.getInstance().error(e.getMessage());
+            //AppLogger.getInstance().error(e.getStackTrace());
         }
 
         if (event == null) {
-            System.out.println("ERROR: Event is null -- event string is below");
-            System.out.println(eventString);
+            AppLogger.getInstance().error("Event is null -- event string is below");
+            AppLogger.getInstance().error(eventString);
             return;
         }
 
         if (event.eventType == null) {
-            System.out.println("ERROR: Event type is null -- event string is below");
-            System.out.println(eventString);
+            AppLogger.getInstance().error("Event type is null -- event string is below");
+            AppLogger.getInstance().error(eventString);
             return;
         }
 
@@ -83,7 +83,7 @@ public class LichessEventReader implements Runnable {
             _botManager.handleGameFinish(event);
         }
         else {
-            System.out.println("ERROR: Unknown event type received: " + event.eventType);
+            AppLogger.getInstance().error("Unknown event type received: " + event.eventType);
         }
     }
 
@@ -125,7 +125,7 @@ public class LichessEventReader implements Runnable {
                 }
 
                 ++connectionErrorCount;
-                Logger.error("Got IOException number " + connectionErrorCount + " while reading from this URL: " + LichessInterface.LICHESS_API_ENDPOINT_BASE + "stream/event");
+                AppLogger.getInstance().error("Got IOException number " + connectionErrorCount + " while reading from this URL: " + LichessInterface.LICHESS_API_ENDPOINT_BASE + "stream/event");
 
                 if (connectionErrorCount >= 5) {
                     throw new RuntimeException("Got 5 IOExceptions while reading from this URL: " + LichessInterface.LICHESS_API_ENDPOINT_BASE + "stream/event");
@@ -134,7 +134,7 @@ public class LichessEventReader implements Runnable {
                 try { Thread.sleep(10000); } catch (InterruptedException ee) { }
             }
         }
-        Logger.info("Ending event reader thread");
+        AppLogger.getInstance().info("Ending event reader thread");
     }
 
 }

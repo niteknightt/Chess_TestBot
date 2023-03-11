@@ -44,10 +44,10 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    implementation 'niteknightt.chess:common:0.2'
+    implementation 'niteknightt.chess:common:0.2.008'
     implementation 'niteknightt.chess:uciclientmod:0.4'
     implementation 'niteknightt.chess:gameplay:0.2'
-    implementation 'niteknightt.chess:lichessapi:0.2'
+    implementation 'niteknightt.chess:lichessapi:0.2.003'
     implementation 'com.google.code.gson:gson:2.10.1'
 }
 
@@ -73,5 +73,59 @@ publishing {
             version='0.2'
             from(components.java)
         }
+    }
+}
+
+task prepareDirs {
+    mustRunAfter clean
+    doLast {
+        def runtimePath = System.getenv("NN_RUNTIME_FILE_PATH")
+        def folder = new File("$runtimePath")
+
+        if( !folder.exists() ) {
+            folder.mkdirs()
+            mkdir("$runtimePath/settings")
+            copy {
+                from "resources/settings.conf"
+                into folder.toPath()
+            }
+            new File("$runtimePath/settings", "settings.conf").text = ""
+            mkdir("$runtimePath/appLogs")
+            mkdir("$runtimePath/gameLogs")
+            mkdir("$runtimePath/uciLogs")
+            mkdir("$runtimePath/persistence")
+        }
+        else {
+            folder = new File("$runtimePath/settings")
+            if (!folder.exists()) {
+                folder.mkdirs()
+            }
+            copy {
+                from "resources/settings.conf"
+                into folder.toPath()
+            }
+            folder = new File("$runtimePath/appLogs")
+            if (!folder.exists()) {
+                folder.mkdirs()
+            }
+            folder = new File("$runtimePath/gameLogs")
+            if (!folder.exists()) {
+                folder.mkdirs()
+            }
+            folder = new File("$runtimePath/uciLogs")
+            if (!folder.exists()) {
+                folder.mkdirs()
+            }
+            folder = new File("$runtimePath/persistence")
+            if (!folder.exists()) {
+                folder.mkdirs()
+            }
+        }
+    }
+}
+
+tasks.each {
+    if (it != prepareDirs && it != clean) {
+        it.dependsOn prepareDirs
     }
 }

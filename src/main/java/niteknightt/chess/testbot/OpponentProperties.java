@@ -1,8 +1,12 @@
 package niteknightt.chess.testbot;
 
 import com.google.gson.Gson;
+import niteknightt.chess.common.AppLogger;
+import niteknightt.chess.common.Constants;
 import niteknightt.chess.common.Enums;
+import niteknightt.chess.common.Helpers;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -17,8 +21,11 @@ public class OpponentProperties {
     public String id;
     public Enums.EngineAlgorithm algorithm;
 
-    public static String RESOURCE_FILE_PATH = "resources/";
-    public static String OPPONENT_PROPS_FILE_NAME = RESOURCE_FILE_PATH + "opponents.json";
+    public static String OPPONENT_PROPS_FILE_NAME = System.getenv(Constants.ENV_VAR_RUNTIME_FILE_PATH)
+        + File.separator
+        + Constants.PERSISTENCE_SUBDIR
+        + File.separator
+        + Constants.OPPONENTS_FILENAME;
 
     public static List<OpponentProperties> _allProps;
 
@@ -65,6 +72,14 @@ public class OpponentProperties {
     }
 
     protected static void _loadAllProps() {
+        File file = Paths.get(OPPONENT_PROPS_FILE_NAME).toFile();
+
+        if (!file.exists()) {
+            _allProps = new ArrayList<OpponentProperties>();
+            _saveAllProps();
+            return;
+        }
+
         Gson gson = new Gson();
         try {
             Reader reader = Files.newBufferedReader(Paths.get(OPPONENT_PROPS_FILE_NAME));
@@ -72,7 +87,7 @@ public class OpponentProperties {
             reader.close();
         }
         catch (IOException e) {
-            Logger.error("Exception while reading " + OPPONENT_PROPS_FILE_NAME + ": " + e.toString());
+            AppLogger.getInstance().error("Exception while reading " + OPPONENT_PROPS_FILE_NAME + ": " + e.toString());
             _allProps = new ArrayList<OpponentProperties>();
             _saveAllProps();
         }
@@ -86,7 +101,7 @@ public class OpponentProperties {
             writer.close();
         }
         catch (IOException e) {
-            Logger.error("Exception while writing " + OPPONENT_PROPS_FILE_NAME + ": " + e.toString());
+            AppLogger.getInstance().error("Exception while writing " + OPPONENT_PROPS_FILE_NAME + ": " + e.toString());
         }
     }
 }

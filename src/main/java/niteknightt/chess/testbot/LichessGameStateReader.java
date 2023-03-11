@@ -2,11 +2,8 @@ package niteknightt.chess.testbot;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import niteknightt.chess.common.Logger;
-import niteknightt.chess.lichessapi.LichessChatLineEvent;
-import niteknightt.chess.lichessapi.LichessGameFullEvent;
-import niteknightt.chess.lichessapi.LichessGameStateEvent;
-import niteknightt.chess.lichessapi.LichessInterface;
+import niteknightt.chess.common.AppLogger;
+import niteknightt.chess.lichessapi.*;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -43,8 +40,11 @@ public class LichessGameStateReader implements Runnable {
         else if ("chatLine".equals(messageType)) {
             _game.addEvent(new Gson().fromJson(gameStateString, LichessChatLineEvent.class));
         }
+        else if ("opponentGone".equals(messageType)) {
+            _game.addEvent(new Gson().fromJson(gameStateString, LichessOpponentGoneEvent.class));
+        }
         else {
-            System.out.println("ERROR: Unknown game state type received: " + messageType);
+            AppLogger.getInstance().error("Unknown game state type received: " + messageType);
         }
     }
 
@@ -79,12 +79,12 @@ public class LichessGameStateReader implements Runnable {
             }
             catch (IOException e) {
                 if (e.getMessage() == null || !e.getMessage().equals("stream is closed")) {
-                    Logger.error("Received exception while reading game state: " + e.toString());
+                    AppLogger.getInstance().error("Received exception while reading game state: " + e.toString());
                 }
                 if (e instanceof FileNotFoundException) {
                     continue;
                 }
-                Logger.info("Game state stream is closed for game " + _game._gameId);
+                AppLogger.getInstance().info("Game state stream is closed for game " + _game._gameId);
                 setDone();
             }
         }

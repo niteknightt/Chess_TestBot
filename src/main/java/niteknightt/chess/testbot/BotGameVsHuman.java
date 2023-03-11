@@ -10,8 +10,8 @@ public class BotGameVsHuman extends BotGame {
 
     public static Enums.EngineAlgorithm DEFAULT_ALGORITHM = Enums.EngineAlgorithm.BEST_MOVE;
 
-    public BotGameVsHuman(LichessChallenge challenge, GameLogger log) {
-        super(challenge, log);
+    public BotGameVsHuman(LichessChallenge challenge) {
+        super(challenge);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class BotGameVsHuman extends BotGame {
             try {
                 int algoCode = Integer.parseInt(remainingText.trim());
                 if (algoCode < 0 || algoCode > 3) {
-                    _log.info(_gameId, "event", "Invalid algo choice: " + text);
+                    _gameLogger.info(_gameId, "event", "Invalid algo choice: " + text);
                     LichessInterface.writeChat(_gameId, "Sorry, only algos 0, 1, 2, and 3 are working so far.");
                     return;
                 }
@@ -101,11 +101,11 @@ public class BotGameVsHuman extends BotGame {
                         LichessInterface.writeChat(_gameId, "Switched to the " + _algorithm + " algorithm because the user requested it");
                     }
                 }
-                _log.info(_gameId, "event", "User sent valid algo choice: " + text);
+                _gameLogger.info(_gameId, "event", "User sent valid algo choice: " + text);
             }
             catch (LichessApiException ex) { }
             catch (NumberFormatException e) {
-                _log.info(_gameId, "event", "Failed to parse algo choice: " + text);
+                _gameLogger.info(_gameId, "event", "Failed to parse algo choice: " + text);
                 try {
                     LichessInterface.writeChat(_gameId, "Yeah, I couldn't understand that. But we're cool, right?");
                 }

@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class BotMain {
 
     public static void main(String[] args) throws Exception {
-        Helpers.initLog();
+        //Helpers.initLog();
         BotManager botManager = new BotManager();
         Thread botManagerThread = new Thread(botManager);
         botManagerThread.start();
@@ -26,7 +26,6 @@ public class BotMain {
         botManagerThread.join();
 
         System.out.println("Thanks. That is all.");
-        return;
     }
 
 }
