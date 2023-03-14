@@ -4,14 +4,11 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import niteknightt.chess.common.Constants;
-import niteknightt.chess.common.Helpers;
+import niteknightt.chess.common.*;
 import niteknightt.chess.testbot.moveselectors.BestWorstMoveSelector;
 import niteknightt.chess.testbot.moveselectors.InstructiveMoveSelector;
 import niteknightt.chess.testbot.moveselectors.JustTheBestMoveSelector;
 import niteknightt.chess.testbot.moveselectors.MoveSelector;
-import niteknightt.chess.common.Enums;
-import niteknightt.chess.common.GameLogger;
 import niteknightt.chess.gameplay.Board;
 import niteknightt.chess.gameplay.Move;
 import niteknightt.chess.lichessapi.*;
@@ -33,8 +30,10 @@ public abstract class BotGame implements Runnable {
     protected Enums.EngineAlgorithm _algorithm;
     protected MoveSelector _moveSelector;
     protected Random _random = new Random();
-    protected List<Move> _moves = new ArrayList<Move>();
-    protected Queue<LichessGameEvent> _events = new LinkedList<LichessGameEvent>();
+    protected List<Move> _moves = new ArrayList<>();
+    protected List<Move> _challengerMoves = new ArrayList<>();
+    protected List<Move> _engineMoves = new ArrayList<>();
+    protected Queue<LichessGameEvent> _events = new LinkedList<>();
     protected Lock _eventLock = new ReentrantLock(true);
     protected GameLogger _gameLogger = null;
 
@@ -76,7 +75,8 @@ public abstract class BotGame implements Runnable {
     public Enums.GameState gameState() { return _gameState; }
 
     public void setGameState(Enums.GameState gameState ) {
-        _gameState = gameState; _lastGameStateUpdate = new Date();
+        _gameState = gameState;
+        _lastGameStateUpdate = new Date();
         _gameLogger.debug(_gameId, "state", "Set gamestate to " + _gameState.toString());
     }
 
@@ -125,15 +125,14 @@ public abstract class BotGame implements Runnable {
     }
 
     /**
-     * Handle receiving a challenger's move, and verify that our internal state of the game
-     * matches Lichess's state.
+     * Checks if the game status received from a Lichess incremental game state event
+     * indicates that the game is over for any reason.
      *
-     * @param status the status of the game according to Lichess.
-     * @param moves list of all moves played in the game according to Lichess.
+     * @param status the game status received from a Lichess incremental game state event.
+     *
+     * @return true if the game is over, false otherwise.
      */
-    protected void _handleReceivingIncrementalGameState(LichessEnums.GameStatus status, String moves) {
-
-        // Log information about the game state received.
+    protected boolean _statusIsGameEnd(LichessEnums.GameStatus status) {
         if (status.equals(LichessEnums.GameStatus.ABORTED) ||
                 status.equals(LichessEnums.GameStatus.DRAW) ||
                 status.equals(LichessEnums.GameStatus.MATE) ||
@@ -143,35 +142,72 @@ public abstract class BotGame implements Runnable {
                 status.equals(LichessEnums.GameStatus.TIMEOUT) ||
                 status.equals(LichessEnums.GameStatus.UNKNOWN_FINISH)){
             _gameLogger.info(_gameId, "game", "Received game-ending event -- not doing any moves");
-            return;
+            return true;
         }
+        return false;
+    }
 
-        // Make the challenger's move that is in the game state, if there is one.
+    /**
+     * Performs the challenger's move on the internal chess board, the move which was
+     * received from a Lichess incremental game state event.
+     *
+     * @param moves the list of moves from the Lichess incremental game state event.
+     */
+    protected void _doChallengerMove(String moves) {
         String moveSRs[] = moves.split(" ");
-        if (_board.whosTurnToGo() == _challengerColor && moveSRs.length == _moves.size() + 1) {
-            Move currentMove = new Move(moveSRs[moveSRs.length - 1], _board);
+        if (_board.whosTurnToGo() == _challengerColor) {
+            if (moveSRs.length == _moves.size() + 1) {
+                Move currentMove = new Move(moveSRs[moveSRs.length - 1], _board);
 
-            _gameLogger.info(_gameId, "game", "Challenger's move is " + currentMove.algebraicFormat());
+                _gameLogger.info(_gameId, "game", "Challenger's move is " + currentMove.algebraicFormat());
 
-            if (!_board._isMoveLegal(currentMove)) {
-                _gameLogger.error(_gameId, "game", "Before trying the challenger's move, the board says it is illegal -- Move: " + currentMove.algebraicFormat() + " Fen: " + _board.getFen());
-                setGameState(Enums.GameState.ERROR);
-            }
-            else {
-                if (!_board.handleMoveForGame(currentMove)) {
-                    _gameLogger.error(_gameId, "game", "The board returned false when trying to play the challenger's move -- Move: " + currentMove.algebraicFormat() + " Fen: " + _board.getFen());
+                if (!_board._isMoveLegal(currentMove)) {
+                    _gameLogger.error(_gameId, "game", "Before trying the challenger's move, the board says it is illegal -- Move: " + currentMove.algebraicFormat() + " Fen: " + _board.getFen());
                     setGameState(Enums.GameState.ERROR);
                 }
-                _moves.add(currentMove);
-                ++_numMovesPlayedByChallenger;
-                _gameLogger.debug(_gameId, "game", "Did challenger's move " + currentMove.algebraicFormat() + " fen is now " + _board.getFen());
+                else {
+                    if (!_board.handleMoveForGame(currentMove)) {
+                        _gameLogger.error(_gameId, "game", "The board returned false when trying to play the challenger's move -- Move: " + currentMove.algebraicFormat() + " Fen: " + _board.getFen());
+                        setGameState(Enums.GameState.ERROR);
+                    }
+                    _moves.add(currentMove);
+                    _challengerMoves.add(currentMove);
+                    ++_numMovesPlayedByChallenger;
+                    _gameLogger.debug(_gameId, "game", "Did challenger's move " + currentMove.algebraicFormat() + " fen is now " + _board.getFen());
 
-                _performPostmoveTasks();
+                    _performPostChallengerMoveTasks();
+                }
             }
+            else {
+                // Challenger's move but did not get the move.
+                AppLogger.getInstance().warning("Got incremental game state on challenger's move but no move received");
+                System.out.println("Got incremental game state on challenger's move but no move received");
+            }
+        }
+        else {
+            // Got incremental state after computer's move?
+            AppLogger.getInstance().warning("Got incremental game state on computer's move");
+            System.out.println("Got incremental game state on computer's move");
         }
     }
 
-    protected abstract void _performPostmoveTasks();
+    /**
+     * Handle receiving a challenger's move, and verify that our internal state of the game
+     * matches Lichess's state.
+     *
+     * @param status the status of the game according to Lichess.
+     * @param moves list of all moves played in the game according to Lichess.
+     */
+    protected void _handleReceivingIncrementalGameState(LichessEnums.GameStatus status, String moves) {
+
+        if (_statusIsGameEnd(status)) {
+            return;
+        }
+
+        _doChallengerMove(moves);
+    }
+
+    protected abstract void _performPostChallengerMoveTasks();
 
     public Board getBoard() { return _board; }
 
@@ -218,6 +254,7 @@ public abstract class BotGame implements Runnable {
         _gameLogger.debug(_gameId, "mainloop", "Played engine move " + engineMove.algebraicFormat() + " fen is " + _board.getFen());
 
         _moves.add(engineMove);
+        _engineMoves.add(engineMove);
         ++_numMovesPlayedByEngine;
         try {
             LichessInterface.makeMove(_gameId, engineMove.uciFormat());
@@ -228,6 +265,71 @@ public abstract class BotGame implements Runnable {
         }
     }
 
+    protected boolean _isComputerTurn() {
+        return (_board.whosTurnToGo() == _engineColor);
+    }
+
+    protected void _resignGameBecauseNotComputerTurn() {
+        _gameLogger.info(_gameId, "mainloop", "Should be computer's move but internal game says it is challenger's move -- aborting game");
+        _handleErrorInGame(true, false, Enums.GameState.ABORTED, "Oops, I thought it was my turn but apparently it's yours. I have to quit this game.");
+    }
+
+    // This state can occur if any unexpected situation is caught by the program.
+    // Only the program sets this state.
+    protected void _resignGameBecauseGeneralError() {
+        _gameLogger.error(_gameId, "mainloop", "Gamestate is in error -- aborting game");
+        _handleErrorInGame(true, false, Enums.GameState.ABORTED, "Hey guess what? Some sort of error happened in my program and I have to quit the game. Sorry!");
+    }
+
+    protected void _resignGameBecauseForcedEnd() {
+        _gameLogger.info(_gameId, "mainloop", "Received external forced end -- aborting game");
+        _handleErrorInGame(true, false, Enums.GameState.ABORTED, "OMG! I've been instructed by the program to quit the gane. Bye for now.");
+    }
+
+    // If we received an opponent left game state, we claim victory.
+    protected void _claimVictoryBecauseOpponentLeft() {
+        _gameLogger.info(_gameId, "mainloop", "Received game abort -- aborting game");
+        _handleErrorInGame(false, true, Enums.GameState.ABORTED, "Wow, it looks like you left. Bye for now.");
+    }
+
+    protected void _waitToUnstuckGameOrResign() {
+        Date now = new Date();
+        long diffInMillies = Math.abs(now.getTime() - _lastGameStateUpdate.getTime());
+        if (diffInMillies > 15000) {
+            _gameLogger.error(_gameId, "mainloop", "Game state (" + _gameState.toString() + ") unchanged for 15 seconds -- aborting game");
+            _handleErrorInGame(true, false, Enums.GameState.ABORTED, "I zoned out for just a second and now I'm totally confused about this game. I gotta go.");
+        }
+    }
+
+    protected boolean _gameIsInGoodShape() {
+        return (gameState() == Enums.GameState.FULL_STATE_RECEIVED);
+    }
+
+    protected boolean _gameIsInErrorState() {
+        return (gameState() == Enums.GameState.ERROR);
+    }
+
+    protected boolean _gameIsInOpponentLeftState() {
+        return (gameState() == Enums.GameState.OPPONENT_LEFT);
+    }
+
+    // These are states that should only be very temporary. So if we are
+    // stuck in one of them, apparently something bad has happened and
+    // we should kill the game.
+    // CREATED -- challenge has been received but GAME_START event not yet received
+    // STARTED_BY_EVENT -- GAME_START event received but full game state data not yet received
+    // ENDED_INTERNALLY -- program detected game end (mate, etc.) but GAME_FINISH event not yet received
+    protected boolean _gameStuckInTemporaryState() {
+        return (gameState() == Enums.GameState.CREATED ||
+                gameState() == Enums.GameState.STARTED_BY_EVENT ||
+                gameState() == Enums.GameState.ENDED_INTERNALLY);
+    }
+
+    // This might happen if the bot manager decided it has to kill the game.
+    protected boolean _gameForcedEndExternally() {
+        return (gameState() == Enums.GameState.EXTERNAL_FORCED_END);
+    }
+
     /**
      * Main loop of the game.
      */
@@ -235,48 +337,28 @@ public abstract class BotGame implements Runnable {
 
         while (!done()) {
 
-            while (_handleNextEvent()) {
-                // Just do the loop.
-            }
+            while (_handleNextEvent());
 
-            if (gameState() == Enums.GameState.FULL_STATE_RECEIVED) {
-                if (_board.whosTurnToGo() == _engineColor) {
-                    _gameLogger.debug(_gameId, "mainloop", "Playing engine move fen is " + _board.getFen());
-                    _playEngineMove();
-                }
+            // There are no events to be handled, which means it must be the computer's
+            // turn to move.
+
+            if (!_isComputerTurn()) {
+                _resignGameBecauseNotComputerTurn();
             }
-            else if (gameState() == Enums.GameState.ERROR) {
-                // This state can occur if any unexpected situation is caught by the program.
-                // Only the program sets this state.
-                _gameLogger.error(_gameId, "mainloop", "Gamestate is in error -- aborting game");
-                _handleErrorInGame(true, false, Enums.GameState.ABORTED, "Hey guess what? Some sort of error happened in my program and I have to quit the game. Sorry!");
+            else if (_gameIsInGoodShape()) {
+                _playEngineMove();
             }
-            else if (gameState() == Enums.GameState.EXTERNAL_FORCED_END) {
-                // This might happen if the bot manager decided it has to kill the game.
-                _gameLogger.info(_gameId, "mainloop", "Received external forced end -- aborting game");
-                _handleErrorInGame(true, false, Enums.GameState.ABORTED, "OMG! I've been instructed by the program to quit the gane. Bye for now.");
+            else if (_gameIsInErrorState()) {
+                _resignGameBecauseGeneralError();
             }
-            else if (gameState() == Enums.GameState.ABORTED) {
-                // I am using this to catch the case where the opponent has left the game.
-                // We should add code to claim victory.
-                _gameLogger.info(_gameId, "mainloop", "Received game abort -- aborting game");
-                _handleErrorInGame(false, true, Enums.GameState.ABORTED, "Wow, it looks like you left. Bye for now.");
+            else if (_gameForcedEndExternally()) {
+                _resignGameBecauseForcedEnd();
             }
-            else if (gameState() == Enums.GameState.CREATED ||
-                    gameState() == Enums.GameState.STARTED_BY_EVENT ||
-                    gameState() == Enums.GameState.ENDED_INTERNALLY) {
-                // These are states that should only be very temporary. So if we are
-                // stuck in one of them, apparently something bad has happened and
-                // we should kill the game.
-                // CREATED -- challenge has been received but GAME_START event not yet received
-                // STARTED_BY_EVENT -- GAME_START event received but full game state data not yet received
-                // ENDED_INTERNALLY -- program detected game end (mate, etc.) but GAME_FINISH event not yet received
-                Date now = new Date();
-                long diffInMillies = Math.abs(now.getTime() - _lastGameStateUpdate.getTime());
-                if (diffInMillies > 15000) {
-                    _gameLogger.error(_gameId, "mainloop", "Game state (" + _gameState.toString() + ") unchanged for 15 seconds -- aborting game");
-                    _handleErrorInGame(true, false, Enums.GameState.ABORTED, "I zoned out for just a second and now I'm totally confused about this game. I gotta go.");
-                }
+            else if (_gameIsInOpponentLeftState()) {
+                _claimVictoryBecauseOpponentLeft();
+            }
+            else if (_gameStuckInTemporaryState()) {
+                _waitToUnstuckGameOrResign();
             }
 
             try { Thread.sleep(100); } catch (InterruptedException interruptException) { }
@@ -286,8 +368,7 @@ public abstract class BotGame implements Runnable {
     }
 
     protected void _handleOpponentGone() {
-        // Using ABORTED for now. Should add new state for OPPONENT_GONE.
-        setGameState(Enums.GameState.ABORTED);
+        setGameState(Enums.GameState.OPPONENT_LEFT);
     }
 
     protected void _handleErrorInGame(boolean doQuitGame, boolean claimVictory, Enums.GameState newGameState, String textForChat) {
@@ -324,46 +405,6 @@ public abstract class BotGame implements Runnable {
 
     protected abstract void _performPostgameTasks();
 
-    /**
-     * Handles receiving a "gameFull" state from the game state stream.
-     * @param event the event data of the state.
-     */
-    protected void sendFullGameState(LichessGameFullEvent event) {
-        _handleReceivingFullGameState(event.white.id, event.black.id);
-    }
-
-    /**
-     * Handles receiving a "gameState" state from the game state stream.
-     * @param event the event data of the state.
-     */
-    protected void sendCurrentGameState(LichessGameStateEvent event) {
-        _handleReceivingIncrementalGameState(event.status, event.moves);
-    }
-
-    /**
-     * Handles receiving a "chatLine" state from the game state stream.
-     * @param event the event data of the state.
-     */
-    protected void sendChatMessage(LichessChatLineEvent event) {
-        if (event.username.equals("niteknighttbot")) {
-            _gameLogger.debug(_gameId, "event", "Received chat message that the bot sent");
-            return;
-        }
-        _gameLogger.info(_gameId, "event", "Received chat message from challenger");
-        _handleChatFromChallenger(event.text);
-    }
-
-    /**
-     * Handles receiving a "opponentGone" state from the game state stream.
-     * @param event the event data of the state.
-     */
-    protected void sendOpponentGone(LichessOpponentGoneEvent event) {
-        if (event.gone) {
-            _gameLogger.info(_gameId, "event", "Received chat message that opponent has left");
-            _handleOpponentGone();
-        }
-    }
-
     public void addEvent(LichessGameEvent event) {
         try {
             _eventLock.lock();
@@ -389,16 +430,32 @@ public abstract class BotGame implements Runnable {
             _gameLogger.info(_gameId, "event", "Handling event " + event.getClass().toString());
 
             if (event instanceof LichessGameFullEvent) {
-                sendFullGameState((LichessGameFullEvent)event);
+                String whitePlayerId = ((LichessGameFullEvent)event).white.id;
+                String blackPlayerId = ((LichessGameFullEvent)event).black.id;
+                _handleReceivingFullGameState(whitePlayerId, blackPlayerId);
             }
             else if (event instanceof LichessGameStateEvent) {
-                sendCurrentGameState((LichessGameStateEvent)event);
+                LichessEnums.GameStatus status = ((LichessGameStateEvent)event).status;
+                String moves = ((LichessGameStateEvent)event).moves;
+                _handleReceivingIncrementalGameState(status, moves);
             }
             else if (event instanceof LichessChatLineEvent) {
-                sendChatMessage((LichessChatLineEvent)event);
+                String username = ((LichessChatLineEvent)event).username;
+                String text = ((LichessChatLineEvent)event).text;
+                if (username.equals("niteknighttbot")) {
+                    _gameLogger.debug(_gameId, "event", "Received chat message that the bot sent");
+                }
+                else {
+                    _gameLogger.info(_gameId, "event", "Received chat message from challenger");
+                    _handleChatFromChallenger(text);
+                }
             }
             else if (event instanceof LichessOpponentGoneEvent) {
-                sendOpponentGone((LichessOpponentGoneEvent)event);
+                boolean gone = ((LichessOpponentGoneEvent)event).gone;
+                if (gone) {
+                    _gameLogger.info(_gameId, "event", "Received chat message that opponent has left");
+                    _handleOpponentGone();
+                }
             }
             else {
                 throw new RuntimeException("Wrong type of event: " + event.getClass().getName());

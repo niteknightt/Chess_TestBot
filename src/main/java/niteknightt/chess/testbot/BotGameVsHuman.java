@@ -61,7 +61,7 @@ public class BotGameVsHuman extends BotGame {
     }
 
     @Override
-    protected void _performPostmoveTasks() {
+    protected void _performPostChallengerMoveTasks() {
         if (_algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
             if (!Instructor.reviewLastHumanMove(this)) {
                 setGameState(Enums.GameState.ERROR);

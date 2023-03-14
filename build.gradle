@@ -44,7 +44,7 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    implementation 'niteknightt.chess:common:0.2.008'
+    implementation 'niteknightt.chess:common:0.2.009'
     implementation 'niteknightt.chess:uciclientmod:0.4'
     implementation 'niteknightt.chess:gameplay:0.2'
     implementation 'niteknightt.chess:lichessapi:0.2.003'

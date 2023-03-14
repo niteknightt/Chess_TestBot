@@ -15,6 +15,24 @@ public class Instructor {
     public static double BORDER_BETWEEN_A_LITTLE_BETTER_AND_BASICALLY_EQUAL = 0.25;
 
     public static boolean reviewLastHumanMove(BotGameVsHuman game) {
+        // Must have:
+        //   * List of moves that human had available with eval enum
+        //   * Which move human made
+        // Get:
+        //   * List of moves computer now has available with eval enum
+        //
+        // Action:
+        //   * If computer has 2 or more moves which are MUCH_BETTER_THAN_BEFORE.
+        //   * if computer has 1 move MUCH_BETTER_THAN_BEFORE and 1 or more moves
+        //     that are SOMEWHAT_BETTER_THAN_BEFORE
+        //   * If computer has 1 move MUCH_BETTER_THAN_BEFORE and all others
+        //     are SAME_AS_BEFORE or below.
+        //   * If computer has 0 moves MUCH_BETTER_THAN_BEFORE, but 2 or more moves
+        //     which are SOMEWHAT_BETTER_THAN_BEFORE.
+        //   * If computer has 0 moves MUCH_BETTER_THAN_BEFORE, but 1 move which is
+        //     SOMEWHAT_BETTER_THAN_BEFORE.
+        //   * If computer has 0 moves MUCH_BETTER_THAN_BEFORE, and 0 moves which
+        //     are SOMEWHAT_BETTER_THAN_BEFORE.
         List<MoveWithEval> movesAvailableForChallenger = null;
 
         Board gameBoardClone;

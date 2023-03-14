@@ -23,7 +23,7 @@ public class BotGameVsBot extends BotGame {
     }
 
     @Override
-    protected void _performPostmoveTasks() {
+    protected void _performPostChallengerMoveTasks() {
         // Do nothing.
     }
 
