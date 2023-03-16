@@ -1,7 +1,7 @@
 package niteknightt.chess.testbot.moveselectors;
 
 import niteknightt.chess.testbot.MoveSelectorException;
-import niteknightt.chess.testbot.MoveWithEval;
+import niteknightt.chess.testbot.EvaluatedMove;
 import niteknightt.chess.testbot.StockfishClient;
 import niteknightt.chess.common.Enums;
 import niteknightt.chess.common.GameLogger;
@@ -33,7 +33,7 @@ public class InstructiveMoveSelector extends MoveSelector {
         }
         else {
             _stockfishClient.setPosition(board.getFen());
-            List<MoveWithEval> movesWithEval = new ArrayList<MoveWithEval>();
+            List<EvaluatedMove> movesWithEval = new ArrayList<EvaluatedMove>();
             try {
                 Date beforeCall = new Date();
                 movesWithEval = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
@@ -70,7 +70,7 @@ public class InstructiveMoveSelector extends MoveSelector {
         return engineMove;
     }
 
-    public List<MoveWithEval> getAllMoves(Board board) throws MoveSelectorException {
+    public List<EvaluatedMove> getAllMoves(Board board) {
         List<Move> legalMoves = board.getLegalMoves();
         _log.debug(_gameId, "moveselector", Move.printMovesToString("These are the legal moves", legalMoves));
 
@@ -82,16 +82,16 @@ public class InstructiveMoveSelector extends MoveSelector {
 
         if (legalMoves.size() == 1) {
             bestMoveUciFormat =  legalMoves.get(0).uciFormat();
-            MoveWithEval moveWithEval = new MoveWithEval();
-            moveWithEval.eval = -1000.0;
-            moveWithEval.ismate = false;
-            moveWithEval.matein = 0;
-            moveWithEval.uci = bestMoveUciFormat;
-            return Arrays.asList(moveWithEval);
+            EvaluatedMove evaluatedMove = new EvaluatedMove();
+            evaluatedMove.eval = -1000.0;
+            evaluatedMove.ismate = false;
+            evaluatedMove.matein = 0;
+            evaluatedMove.uci = bestMoveUciFormat;
+            return Arrays.asList(evaluatedMove);
         }
         else {
             _stockfishClient.setPosition(board.getFen());
-            List<MoveWithEval> movesWithEval = new ArrayList<MoveWithEval>();
+            List<EvaluatedMove> movesWithEval = new ArrayList<EvaluatedMove>();
             try {
                 Date beforeCall = new Date();
                 movesWithEval = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
@@ -106,12 +106,12 @@ public class InstructiveMoveSelector extends MoveSelector {
                 _log.error(_gameId, "moveselector", "Zero moves from stockfish even though there are legal moves");
                 int index = _random.nextInt(legalMoves.size());
                 bestMoveUciFormat = legalMoves.get(index).uciFormat();
-                MoveWithEval moveWithEval = new MoveWithEval();
-                moveWithEval.eval = -1000.0;
-                moveWithEval.ismate = false;
-                moveWithEval.matein = 0;
-                moveWithEval.uci = bestMoveUciFormat;
-                return Arrays.asList(moveWithEval);
+                EvaluatedMove evaluatedMove = new EvaluatedMove();
+                evaluatedMove.eval = -1000.0;
+                evaluatedMove.ismate = false;
+                evaluatedMove.matein = 0;
+                evaluatedMove.uci = bestMoveUciFormat;
+                return Arrays.asList(evaluatedMove);
             }
             else {
                 if (movesWithEval.size() != legalMoves.size()) {

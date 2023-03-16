@@ -5,10 +5,18 @@ import niteknightt.chess.common.GameLogger;
 import niteknightt.chess.lichessapi.LichessApiException;
 import niteknightt.chess.lichessapi.LichessChallenge;
 import niteknightt.chess.lichessapi.LichessInterface;
+import niteknightt.chess.testbot.tests.PotentialMoves;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BotGameVsHuman extends BotGame {
 
     public static Enums.EngineAlgorithm DEFAULT_ALGORITHM = Enums.EngineAlgorithm.BEST_MOVE;
+
+    protected List<PotentialMoves> _allPotentialMoves = new ArrayList<>();
+    protected List<PotentialMoves> _enginePotentialMoves = new ArrayList<>();
+    protected List<PotentialMoves> _humanPotentialMoves = new ArrayList<>();
 
     public BotGameVsHuman(LichessChallenge challenge) {
         super(challenge);
@@ -17,7 +25,7 @@ public class BotGameVsHuman extends BotGame {
     @Override
     protected void _performPregameTasks() {
         _setAlgorithmFromChallengerProps();
-        _writeWelcomToChallenger();
+        _writeWelcomeToChallenger();
     }
 
     /**
@@ -31,7 +39,13 @@ public class BotGameVsHuman extends BotGame {
     protected void _setAlgorithmFromChallengerProps() {
         OpponentProperties props = OpponentProperties.getForOpponent(_challenge.challenger.id);
         if (props != null && props.algorithm != Enums.EngineAlgorithm.NONE) {
-            _setAlgorithm(props.algorithm);
+            // TODO: GET RID OF THIS ONCE I FIX THE PROBLEM WITH INTERNAL EVALUATION
+            if (props.algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
+                _setAlgorithm(Enums.EngineAlgorithm.WORST_MOVE);
+            }
+            else {
+                _setAlgorithm(props.algorithm);
+            }
         }
         else {
             _setAlgorithm(DEFAULT_ALGORITHM);
@@ -42,7 +56,7 @@ public class BotGameVsHuman extends BotGame {
         }
     }
 
-    protected void _writeWelcomToChallenger() {
+    protected void _writeWelcomeToChallenger() {
         OpponentProperties props = OpponentProperties.getForOpponent(_challenge.challenger.id);
         try {
             if (props != null && props.algorithm != Enums.EngineAlgorithm.NONE) {
@@ -62,11 +76,24 @@ public class BotGameVsHuman extends BotGame {
 
     @Override
     protected void _performPostChallengerMoveTasks() {
+        List<EvaluatedMove> nextEngineMoves =  _moveSelector.getAllMoves(_board);
+        PotentialMoves potentialMoves = new PotentialMoves(nextEngineMoves);
+        _allPotentialMoves.add(potentialMoves);
+        _enginePotentialMoves.add(potentialMoves);
+
         if (_algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
             if (!Instructor.reviewLastHumanMove(this)) {
                 setGameState(Enums.GameState.ERROR);
             }
         }
+    }
+
+    @Override
+    protected void _performPostEngineMoveTasks() {
+//        List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
+//        PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
+//        _allPotentialMoves.add(potentialMoves);
+//        _humanPotentialMoves.add(potentialMoves);
     }
 
     /**
@@ -80,6 +107,9 @@ public class BotGameVsHuman extends BotGame {
             // Only do this part if the chat line starts with "algo"
             String remainingText = text.substring("algo".length());
             try {
+                LichessInterface.writeChat(_gameId, "Sorry, this command is not supported for the next day or so. Try it later!");
+                return;
+                /*
                 int algoCode = Integer.parseInt(remainingText.trim());
                 if (algoCode < 0 || algoCode > 3) {
                     _gameLogger.info(_gameId, "event", "Invalid algo choice: " + text);
@@ -102,6 +132,7 @@ public class BotGameVsHuman extends BotGame {
                     }
                 }
                 _gameLogger.info(_gameId, "event", "User sent valid algo choice: " + text);
+                 */
             }
             catch (LichessApiException ex) { }
             catch (NumberFormatException e) {

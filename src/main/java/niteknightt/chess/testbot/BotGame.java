@@ -180,8 +180,9 @@ public abstract class BotGame implements Runnable {
             }
             else {
                 // Challenger's move but did not get the move.
-                AppLogger.getInstance().warning("Got incremental game state on challenger's move but no move received");
-                System.out.println("Got incremental game state on challenger's move but no move received");
+                // TODO: Verify that this is not an error -- incremental state comes after every move?
+                //AppLogger.getInstance().warning("Got incremental game state on challenger's move but no move received");
+                //System.out.println("Got incremental game state on challenger's move but no move received");
             }
         }
         else {
@@ -208,6 +209,8 @@ public abstract class BotGame implements Runnable {
     }
 
     protected abstract void _performPostChallengerMoveTasks();
+
+    protected abstract void _performPostEngineMoveTasks();
 
     public Board getBoard() { return _board; }
 
@@ -263,6 +266,8 @@ public abstract class BotGame implements Runnable {
             _gameLogger.error(_gameId, "comm", "Caught LichessApiException while sending move to Lichess");
             _handleErrorInGame(false, false, Enums.GameState.ERROR, "I want to make a move, but can't seem to send it to Lichess. Gotta quit.");
         }
+
+        _performPostEngineMoveTasks();
     }
 
     protected boolean _isComputerTurn() {
@@ -342,10 +347,13 @@ public abstract class BotGame implements Runnable {
             // There are no events to be handled, which means it must be the computer's
             // turn to move.
 
-            if (!_isComputerTurn()) {
-                _resignGameBecauseNotComputerTurn();
+            if (_gameStuckInTemporaryState()) {
+                _waitToUnstuckGameOrResign();
             }
-            else if (_gameIsInGoodShape()) {
+            //else if (!_isComputerTurn()) {
+            //    _resignGameBecauseNotComputerTurn();
+            //}
+            else if (_isComputerTurn() && _gameIsInGoodShape()) {
                 _playEngineMove();
             }
             else if (_gameIsInErrorState()) {
@@ -356,9 +364,6 @@ public abstract class BotGame implements Runnable {
             }
             else if (_gameIsInOpponentLeftState()) {
                 _claimVictoryBecauseOpponentLeft();
-            }
-            else if (_gameStuckInTemporaryState()) {
-                _waitToUnstuckGameOrResign();
             }
 
             try { Thread.sleep(100); } catch (InterruptedException interruptException) { }

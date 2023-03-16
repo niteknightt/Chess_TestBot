@@ -1,7 +1,7 @@
 package niteknightt.chess.testbot.moveselectors;
 
 import niteknightt.chess.testbot.MoveSelectorException;
-import niteknightt.chess.testbot.MoveWithEval;
+import niteknightt.chess.testbot.EvaluatedMove;
 import niteknightt.chess.testbot.StockfishClient;
 import niteknightt.chess.common.Enums;
 import niteknightt.chess.common.GameLogger;
@@ -26,8 +26,7 @@ public abstract class MoveSelector {
         _gameId = gameId;
     }
 
-    public abstract List<MoveWithEval> getAllMoves(Board board)
-            throws MoveSelectorException;
+    public abstract List<EvaluatedMove> getAllMoves(Board board);
 
     public abstract Move selectMove(Board board)
             throws MoveSelectorException;

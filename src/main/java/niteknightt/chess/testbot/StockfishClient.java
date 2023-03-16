@@ -56,7 +56,7 @@ public class StockfishClient {
         uci.positionFen(fen);
     }
 
-    public List<MoveWithEval> calcMoves(int numMoves, long timeoutMs, Enums.Color colorToMove) {
+    public List<EvaluatedMove> calcMoves(int numMoves, long timeoutMs, Enums.Color colorToMove) {
         uci.setOption("MultiPV", Integer.valueOf(numMoves).toString());
         var analysis = uci.analysis(10).getResultOrThrow();
         var moves = analysis.getAllMoves();
@@ -67,17 +67,22 @@ public class StockfishClient {
             var moves1 = analysis1.getAllMoves();
             logger.debugOutput(_gameId, "Retry Num moves from UCI: " + moves1.size() + " Num legal moves: " + numMoves);
         }
-        List<MoveWithEval> movesWithEval = new ArrayList<MoveWithEval>();
+        List<EvaluatedMove> movesWithEval = new ArrayList<EvaluatedMove>();
         for (Map.Entry<Integer, Move> entry : moves.entrySet()) {
             String uciFormat = entry.getValue().getLan();
             Double eval = entry.getValue().getStrength().getScore();
+
+            double multiplier = (colorToMove == Enums.Color.WHITE ? 1.0 : -1.0);
+            double testEval = eval * multiplier;
+
+
             int matein = 0;
             if (entry.getValue().getStrength().isForcedMate()) {
                 matein = entry.getValue().getStrength().getMateIn();
             }
             int breakpoint = -1;
             for (int i = 0; i < movesWithEval.size(); ++i) {
-                MoveWithEval moveFromList = movesWithEval.get(i);
+                EvaluatedMove moveFromList = movesWithEval.get(i);
                 if (colorToMove == Enums.Color.WHITE) {
                     if (matein > 0) {
                         if (!moveFromList.ismate) {
@@ -103,7 +108,7 @@ public class StockfishClient {
                     }
                 }
             }
-            MoveWithEval newmove = new MoveWithEval();
+            EvaluatedMove newmove = new EvaluatedMove();
             newmove.uci = uciFormat;
             newmove.eval = eval;
             newmove.matein = matein;

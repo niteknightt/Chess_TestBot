@@ -1,7 +1,7 @@
 package niteknightt.chess.testbot.moveselectors;
 
 import niteknightt.chess.testbot.MoveSelectorException;
-import niteknightt.chess.testbot.MoveWithEval;
+import niteknightt.chess.testbot.EvaluatedMove;
 import niteknightt.chess.testbot.StockfishClient;
 import niteknightt.chess.common.Enums;
 import niteknightt.chess.common.GameLogger;
@@ -18,7 +18,7 @@ public class JustTheBestMoveSelector extends MoveSelector {
         super(random, algorithm, stockfishClient, log, gameId);
     }
 
-    public List<MoveWithEval> getAllMoves(Board board) throws MoveSelectorException {
+    public List<EvaluatedMove> getAllMoves(Board board) {
         throw new RuntimeException("getAllMoves not implemented for JustTheBestMoveSelector");
     }
 

@@ -1,7 +1,7 @@
 package niteknightt.chess.testbot.moveselectors;
 
 import niteknightt.chess.testbot.MoveSelectorException;
-import niteknightt.chess.testbot.MoveWithEval;
+import niteknightt.chess.testbot.EvaluatedMove;
 import niteknightt.chess.testbot.StockfishClient;
 import niteknightt.chess.common.Enums;
 import niteknightt.chess.common.GameLogger;
@@ -19,7 +19,7 @@ public class BestWorstMoveSelector extends MoveSelector {
         super(random, algorithm, stockfishClient, log, gameId);
     }
 
-    public List<MoveWithEval> getAllMoves(Board board) throws MoveSelectorException {
+    public List<EvaluatedMove> getAllMoves(Board board) {
         throw new RuntimeException("getAllMoves not implemented for BestWorstMoveSelector");
     }
 
@@ -42,7 +42,7 @@ public class BestWorstMoveSelector extends MoveSelector {
         else {
             _log.debug(_gameId, "moveselector", "Sending fen to stockfish: " + board.getFen());
             _stockfishClient.setPosition(board.getFen());
-            List<MoveWithEval> movesWithEval = new ArrayList<MoveWithEval>();
+            List<EvaluatedMove> movesWithEval = new ArrayList<EvaluatedMove>();
             try {
                 Date beforeCall = new Date();
                 movesWithEval = _stockfishClient.calcMoves(legalMoves.size(), 2000, board.whosTurnToGo());

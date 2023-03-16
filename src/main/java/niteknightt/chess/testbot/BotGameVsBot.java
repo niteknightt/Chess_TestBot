@@ -27,6 +27,11 @@ public class BotGameVsBot extends BotGame {
         // Do nothing.
     }
 
+    @Override
+    protected void _performPostEngineMoveTasks() {
+        // Do nothing.
+    }
+
     /**
      * Handles text received from the challenger in the chat.
      *
