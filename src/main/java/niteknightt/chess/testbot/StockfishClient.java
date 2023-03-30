@@ -72,7 +72,7 @@ public class StockfishClient {
         for (Map.Entry<Integer, Move> entry : moves.entrySet()) {
             String uciFormat = entry.getValue().getLan();
             Double eval = entry.getValue().getStrength().getScore();
-            Enums.MoveEvalCategory category = Helpers.categoryFromEval(eval, colorToMove);
+            Enums.MoveEvalCategory category = Helpers.categoryFromEval(eval, Enums.Color.WHITE);
 
             double multiplier = (colorToMove == Enums.Color.WHITE ? 1.0 : -1.0);
             double testEval = eval * multiplier;

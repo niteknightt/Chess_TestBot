@@ -14,6 +14,7 @@ import java.util.*;
 public class InstructiveMoveSelector extends MoveSelector {
 
     protected boolean _isOpportunityForHuman = false;
+    protected Random _random = new Random();
 
     public boolean isOpportunityForHuman() { return _isOpportunityForHuman; }
 
@@ -66,13 +67,23 @@ public class InstructiveMoveSelector extends MoveSelector {
                 else {
                     int finalIndex = -1;
                     PotentialMoves potentialMoves = new PotentialMoves(movesWithEval);
-                    int numReasonableMoves = movesWithEval.size() - potentialMoves.numLosing - potentialMoves.numWellBehind;
-                    if (numReasonableMoves == 0 || numReasonableMoves == 1) {
-                        finalIndex = 0;
+                    if (potentialMoves.numWinning > 0) {
+                        finalIndex = _random.nextInt(potentialMoves.numWinning);
+                    }
+                    else if (potentialMoves.numWellAhead > 0) {
+                        finalIndex = _random.nextInt(potentialMoves.numWellAhead + potentialMoves.numLeading);
                     }
                     else {
-                        Random random = new Random();
-                        finalIndex = random.nextInt(numReasonableMoves);
+                        int numReasonableMoves = movesWithEval.size() - potentialMoves.numLosing - potentialMoves.numWellBehind;
+                        if (board.getFullMoveNumber() <= 8) {
+                            numReasonableMoves -= potentialMoves.numLagging;
+                        }
+                        if (numReasonableMoves == 0 || numReasonableMoves == 1) {
+                            finalIndex = 0;
+                        }
+                        else {
+                            finalIndex = _random.nextInt(numReasonableMoves);
+                        }
                     }
                     bestMoveUciFormat = movesWithEval.get(finalIndex).uci;
                     _isOpportunityForHuman = false;
