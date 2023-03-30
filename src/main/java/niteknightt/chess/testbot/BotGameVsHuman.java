@@ -26,6 +26,13 @@ public class BotGameVsHuman extends BotGame {
     protected void _performPregameTasks() {
         _setAlgorithmFromChallengerProps();
         _writeWelcomeToChallenger();
+
+        if (_engineColor == Enums.Color.BLACK) {
+            List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
+            PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
+            _allPotentialMoves.add(potentialMoves);
+            _humanPotentialMoves.add(potentialMoves);
+        }
     }
 
     /**
@@ -84,10 +91,10 @@ public class BotGameVsHuman extends BotGame {
 
     @Override
     protected void _performPostEngineMoveTasks() {
-//        List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
-//        PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
-//        _allPotentialMoves.add(potentialMoves);
-//        _humanPotentialMoves.add(potentialMoves);
+        List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
+        PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
+        _allPotentialMoves.add(potentialMoves);
+        _humanPotentialMoves.add(potentialMoves);
     }
 
     /**

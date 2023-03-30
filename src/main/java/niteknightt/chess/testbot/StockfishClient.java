@@ -4,6 +4,7 @@ import net.andreinc.neatchess.client.UciMod;
 import net.andreinc.neatchess.client.model.Move;
 import niteknightt.chess.common.Common;
 import niteknightt.chess.common.Enums;
+import niteknightt.chess.common.Helpers;
 import niteknightt.chess.common.UciIoLogger;
 
 import java.io.BufferedReader;
@@ -71,6 +72,7 @@ public class StockfishClient {
         for (Map.Entry<Integer, Move> entry : moves.entrySet()) {
             String uciFormat = entry.getValue().getLan();
             Double eval = entry.getValue().getStrength().getScore();
+            Enums.MoveEvalCategory category = Helpers.categoryFromEval(eval, colorToMove);
 
             double multiplier = (colorToMove == Enums.Color.WHITE ? 1.0 : -1.0);
             double testEval = eval * multiplier;
@@ -111,6 +113,7 @@ public class StockfishClient {
             EvaluatedMove newmove = new EvaluatedMove();
             newmove.uci = uciFormat;
             newmove.eval = eval;
+            newmove.evalCategory = category;
             newmove.matein = matein;
             newmove.ismate = (matein > 0);
             newmove.continuation = entry.getValue().getContinuation();

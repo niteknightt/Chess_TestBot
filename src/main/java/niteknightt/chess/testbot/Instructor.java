@@ -52,6 +52,13 @@ public class Instructor {
 
         StringBuilder sb = new StringBuilder();
 
+        if (game._humanPotentialMoves.size() == 0) {
+            return true;
+        }
+        if (game._numMovesPlayedByChallenger - 1 >= game._humanPotentialMoves.size()) {
+            throw new RuntimeException("There have been " + game._numMovesPlayedByChallenger + " played by the challenger, but the number of saved potential move lists is only " + game._humanPotentialMoves.size());
+        }
+
         PotentialMoves humanPotentialMoves = game._humanPotentialMoves.get(game._numMovesPlayedByChallenger - 1);
         Move playedMove = game._challengerMoves.get(game._numMovesPlayedByChallenger - 1);
 

@@ -468,8 +468,7 @@ public abstract class BotGame implements Runnable {
             return true;
         }
         catch (Exception ex) {
-            _gameLogger.error(_gameId, "event", "Exception while handling event: " + ex.toString());
-            return false;
+            throw new RuntimeException("Error in handleNextEvent: " + ex);
         }
         finally {
             _eventLock.unlock();
