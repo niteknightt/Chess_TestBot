@@ -66,7 +66,7 @@ public class InstructiveMoveSelector extends MoveSelector {
                 else {
                     int finalIndex = -1;
                     PotentialMoves potentialMoves = new PotentialMoves(movesWithEval);
-                    int numReasonableMoves = movesWithEval.size() - potentialMoves.numVeryMuchWorseMoves - potentialMoves.numMuchWorseMoves;
+                    int numReasonableMoves = movesWithEval.size() - potentialMoves.numLosing - potentialMoves.numWellBehind;
                     if (numReasonableMoves == 0 || numReasonableMoves == 1) {
                         finalIndex = 0;
                     }
@@ -87,15 +87,15 @@ public class InstructiveMoveSelector extends MoveSelector {
     protected int checkIfOpportunityExists(List<EvaluatedMove> movesWithEval, Board board) {
         int opportunityMoveIndex = -1;
         PotentialMoves potentialMoves = new PotentialMoves(movesWithEval);
-        if (potentialMoves.numVeryMuchWorseMoves > 0 || potentialMoves.numMuchWorseMoves > 0) {
-            for (int moveIndex = movesWithEval.size() - 1; moveIndex >= movesWithEval.size() - potentialMoves.numVeryMuchWorseMoves - potentialMoves.numMuchWorseMoves; --moveIndex) {
+        if (potentialMoves.numLosing > 0 || potentialMoves.numWellBehind > 0) {
+            for (int moveIndex = movesWithEval.size() - 1; moveIndex >= movesWithEval.size() - potentialMoves.numLosing - potentialMoves.numWellBehind; --moveIndex) {
                 EvaluatedMove currentEvaluatedMove = movesWithEval.get(moveIndex);
                 Board afterMoveBoard = board.clone();
                 afterMoveBoard.handleMoveForGame(new Move(currentEvaluatedMove.uci, afterMoveBoard));
                 List<EvaluatedMove> humanPossibleMoves = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
                 PotentialMoves potentialHumanMoves = new PotentialMoves(humanPossibleMoves);
                 if (humanPossibleMoves.size() > 1 &&
-                        potentialHumanMoves.numVeryMuchBetterMoves + potentialHumanMoves.numMuchBetterMoves == 1 &&
+                        potentialHumanMoves.numWinning + potentialHumanMoves.numWellAhead == 1 &&
                         isNotACapture(humanPossibleMoves.get(0), afterMoveBoard) &&
                         isNotAMateIn(humanPossibleMoves.get(0))) {
                     opportunityMoveIndex = moveIndex;

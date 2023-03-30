@@ -22,22 +22,22 @@ public class Instructor {
         //   * List of moves computer now has available with eval enum
         //
         // Action:
-        //   * If engine has 2 or more moves which are VERY_MUCH_BETTER_THAN_BEFORE.
-        //   * If engine has 1 move VERY_MUCH_BETTER_THAN_BEFORE and 1 or more moves
-        //     that are MUCH_BETTER_THAN_BEFORE or SOMEWHAT_BETTER_THAN_BEFORE.
-        //   * If engine has 1 move VERY_MUCH_BETTER_THAN_BEFORE and all others
-        //     are SAME_AS_BEFORE or below.
-        //   * If computer has 2 or more moves which are MUCH_BETTER_THAN_BEFORE.
-        //   * if computer has 1 move MUCH_BETTER_THAN_BEFORE and 1 or more moves
-        //     that are SOMEWHAT_BETTER_THAN_BEFORE
-        //   * If computer has 1 move MUCH_BETTER_THAN_BEFORE and all others
-        //     are SAME_AS_BEFORE or below.
-        //   * If computer has 0 moves MUCH_BETTER_THAN_BEFORE, but 2 or more moves
-        //     which are SOMEWHAT_BETTER_THAN_BEFORE.
-        //   * If computer has 0 moves MUCH_BETTER_THAN_BEFORE, but 1 move which is
-        //     SOMEWHAT_BETTER_THAN_BEFORE.
-        //   * If computer has 0 moves MUCH_BETTER_THAN_BEFORE, and 0 moves which
-        //     are SOMEWHAT_BETTER_THAN_BEFORE.
+        //   * If engine has 2 or more moves which are VERY_WELL_AHEAD.
+        //   * If engine has 1 move VERY_WELL_AHEAD and 1 or more moves
+        //     that are WELL_AHEAD or LEADING.
+        //   * If engine has 1 move VERY_WELL_AHEAD and all others
+        //     are EQUAL or below.
+        //   * If computer has 2 or more moves which are WELL_AHEAD.
+        //   * if computer has 1 move WELL_AHEAD and 1 or more moves
+        //     that are LEADING
+        //   * If computer has 1 move WELL_AHEAD and all others
+        //     are EQUAL or below.
+        //   * If computer has 0 moves WELL_AHEAD, but 2 or more moves
+        //     which are LEADING.
+        //   * If computer has 0 moves WELL_AHEAD, but 1 move which is
+        //     LEADING.
+        //   * If computer has 0 moves WELL_AHEAD, and 0 moves which
+        //     are LEADING.
         //
         //   * If human chose best move.
         //   * If human did not choose best move:
@@ -80,29 +80,29 @@ public class Instructor {
         if (playedMove.uciFormat().equals(humanPotentialMoves.evaluatedMoves.get(0).uci)) {
             sb.append("That was the best move!");
             switch (humanPotentialMoves.evaluatedMoves.get(0).evalCategory) {
-                case VERY_MUCH_BETTER_THAN_BEFORE:
-                    sb.append(" Your position is now very much better than before.");
+                case WINNING:
+                    sb.append(" You now have a winning position.");
                     break;
-                case MUCH_BETTER_THAN_BEFORE:
-                    sb.append(" Your position is very much better than before.");
+                case WELL_AHEAD:
+                    sb.append(" Your position is very much better than your opponent's.");
                     break;
-                case SOMEWHAT_BETTER_THAN_BEFORE:
-                    sb.append(" Your position is now somewhat better than before.");
+                case LEADING:
+                    sb.append(" Your position is now somewhat better than your opponent's.");
                     break;
-                case SAME_AS_BEFORE:
-                    sb.append(" Your position remains about the same as before.");
+                case EQUAL:
+                    sb.append(" Your position remains about equal to your opponent's.");
                     break;
-                case SOMEWHAT_WORSE_THAN_BEFORE:
-                    sb.append(" But unfortunately, your position is somewhat worse than before.");
+                case LAGGING:
+                    sb.append(" But unfortunately, your position is somewhat worse than your opponent's.");
                     break;
-                case MUCH_WORSE_THAN_BEFORE:
-                    sb.append(" Alas, your position is much worse than before.");
+                case WELL_BEHIND:
+                    sb.append(" Alas, your position is much worse than your opponent's.");
                     break;
-                case VERY_MUCH_WORSE_THAN_BEFORE:
-                    sb.append(" Either way, though, your position is very much worse than before.");
+                case LOSING:
+                    sb.append(" Either way, though, your are in a losing position.");
                     break;
                 default:
-                    throw new RuntimeException("The category for best move was incorrect");
+                    throw new RuntimeException("The category for best move was not defined");
             }
         }
         else {
@@ -119,52 +119,52 @@ public class Instructor {
                 throw new RuntimeException("Failed to find human played move in list of potential moves");
             }
 
-            if (humanPotentialMoves.numVeryMuchBetterMoves >= 2) {
+            if (humanPotentialMoves.numWinning >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
-                    case VERY_MUCH_BETTER_THAN_BEFORE:
+                    case WINNING:
                         sb.append("That was one of the best moves. Now your position is very much better than before.");
                         break;
-                    case MUCH_BETTER_THAN_BEFORE:
+                    case WELL_AHEAD:
                         sb.append("You much improved your position from before, but there were even better moves that would have greatly improved it.");
                         break;
-                    case SOMEWHAT_BETTER_THAN_BEFORE:
+                    case LEADING:
                         sb.append("You improved your position from before, but there were even better moves that would have greatly improved it.");
                         break;
-                    case SAME_AS_BEFORE:
+                    case EQUAL:
                         sb.append("You missed moves that would have greatly improved your position. Instead, it remains about the same.");
                         break;
-                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                    case LAGGING:
                         sb.append("Your position has degraded somewhat. You had moves that would have greatly improved it.");
                         break;
-                    case MUCH_WORSE_THAN_BEFORE:
+                    case WELL_BEHIND:
                         sb.append("Your position has become much worse. You had moves that would have greatly improved it.");
                         break;
-                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                    case LOSING:
                         sb.append("Your position is now very much worse. You had moves that would have greatly improved it.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
-            else if (humanPotentialMoves.numVeryMuchBetterMoves == 1) {
-                if (humanPotentialMoves.numMuchBetterMoves > 0) {
+            else if (humanPotentialMoves.numWinning == 1) {
+                if (humanPotentialMoves.numWellAhead > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case MUCH_BETTER_THAN_BEFORE:
+                        case WELL_AHEAD:
                             sb.append("You much improved your position from before, but there was an even better move that would have greatly improved it.");
                             break;
-                        case SOMEWHAT_BETTER_THAN_BEFORE:
+                        case LEADING:
                             sb.append("You improved your position from before, but there were even better moves that would have greatly or much improved it.");
                             break;
-                        case SAME_AS_BEFORE:
+                        case EQUAL:
                             sb.append("You missed moves that would have greatly or much improved your position. Instead, it remains about the same.");
                             break;
-                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                        case LAGGING:
                             sb.append("Your position has degraded somewhat. You had moves that would have greatly or much improved it.");
                             break;
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. You had moves that would have greatly or much improved it.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had moves that would have greatly or much improved it.");
                             break;
                         default:
@@ -173,19 +173,19 @@ public class Instructor {
                 }
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case SOMEWHAT_BETTER_THAN_BEFORE:
+                        case LEADING:
                             sb.append("You improved your position from before, but there was an even better move that would have greatly improved it.");
                             break;
-                        case SAME_AS_BEFORE:
+                        case EQUAL:
                             sb.append("You missed a move that would have greatly improved your position. Instead, it remains about the same.");
                             break;
-                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                        case LAGGING:
                             sb.append("Your position has degraded somewhat You had a move that would have greatly improved it.");
                             break;
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse You had a move that would have greatly improved it.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse You had a move that would have greatly improved it.");
                             break;
                         default:
@@ -193,46 +193,46 @@ public class Instructor {
                     }
                 }
             }
-            else if (humanPotentialMoves.numMuchBetterMoves >= 2) {
+            else if (humanPotentialMoves.numWellAhead >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
-                    case MUCH_BETTER_THAN_BEFORE:
+                    case WELL_AHEAD:
                         sb.append("That was one of the best moves. Now your position is much better than before.");
                         break;
-                    case SOMEWHAT_BETTER_THAN_BEFORE:
+                    case LEADING:
                         sb.append("You improved your position from before, but there were even better moves that would have much improved it.");
                         break;
-                    case SAME_AS_BEFORE:
+                    case EQUAL:
                         sb.append("You missed moves that would have much improved your position. Instead, it remains about the same.");
                         break;
-                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                    case LAGGING:
                         sb.append("Your position has degraded somewhat. You had moves that would have much improved it.");
                         break;
-                    case MUCH_WORSE_THAN_BEFORE:
+                    case WELL_BEHIND:
                         sb.append("Your position has become much worse. You had moves that would have much improved it.");
                         break;
-                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                    case LOSING:
                         sb.append("Your position is now very much worse You had moves that would have much improved it.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
-            else if (humanPotentialMoves.numMuchBetterMoves == 1) {
-                if (humanPotentialMoves.numSomewhatBetterMoves > 0) {
+            else if (humanPotentialMoves.numWellAhead == 1) {
+                if (humanPotentialMoves.numLeading > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case SOMEWHAT_BETTER_THAN_BEFORE:
+                        case LEADING:
                             sb.append("You improved your position from before, but there was an even better move that would have much improved it.");
                             break;
-                        case SAME_AS_BEFORE:
+                        case EQUAL:
                             sb.append("You missed moves that would have improved or much improved your position. Instead, it remains about the same.");
                             break;
-                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                        case LAGGING:
                             sb.append("Your position has degraded somewhat You had moves that would have improved or much improved it.");
                             break;
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. You had moves that would have improved or much improved it.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had moves that would have improved or much improved it.");
                             break;
                         default:
@@ -241,16 +241,16 @@ public class Instructor {
                 }
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case SAME_AS_BEFORE:
+                        case EQUAL:
                             sb.append("You missed a move that would have much improved your position. Instead, it remains about the same.");
                             break;
-                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                        case LAGGING:
                             sb.append("Your position has degraded somewhat You had a move that would have much improved it.");
                             break;
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. You had a move that would have much improved it.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had a move that would have much improved it.");
                             break;
                         default:
@@ -258,40 +258,40 @@ public class Instructor {
                     }
                 }
             }
-            else if (humanPotentialMoves.numSomewhatBetterMoves >= 2) {
+            else if (humanPotentialMoves.numLeading >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
-                    case SOMEWHAT_BETTER_THAN_BEFORE:
+                    case LEADING:
                         sb.append("That was one of the best moves. Now your position is better than before.");
                         break;
-                    case SAME_AS_BEFORE:
+                    case EQUAL:
                         sb.append("You missed moves that would have improved your position. Instead, it remains about the same.");
                         break;
-                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                    case LAGGING:
                         sb.append("Your position has degraded somewhat. You had moves that would have improved it.");
                         break;
-                    case MUCH_WORSE_THAN_BEFORE:
+                    case WELL_BEHIND:
                         sb.append("Your position has become much worse. You had moves that would have improved it.");
                         break;
-                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                    case LOSING:
                         sb.append("Your position is now very much worse. You had moves that would have improved it.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
-            else if (humanPotentialMoves.numSomewhatBetterMoves == 1) {
-                if (humanPotentialMoves.numSameMoves > 0) {
+            else if (humanPotentialMoves.numLeading == 1) {
+                if (humanPotentialMoves.numEqual > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case SAME_AS_BEFORE:
+                        case EQUAL:
                             sb.append("You kept your position about the same, but there was a better move that would have improved it.");
                             break;
-                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                        case LAGGING:
                             sb.append("Your position has degraded somewhat. You had moves that would have improved it or kept it the same.");
                             break;
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. You had moves that would have improved it or kept it the same.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had moves that would have improved it or kept it the same.");
                             break;
                         default:
@@ -300,13 +300,13 @@ public class Instructor {
                 }
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                        case LAGGING:
                             sb.append("Your position has degraded somewhat. You had a move that would have improved it.");
                             break;
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. You had a move that would have improved it.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had a move that would have improved it.");
                             break;
                         default:
@@ -314,34 +314,34 @@ public class Instructor {
                     }
                 }
             }
-            else if (humanPotentialMoves.numSameMoves >= 2) {
+            else if (humanPotentialMoves.numEqual >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
-                    case SAME_AS_BEFORE:
+                    case EQUAL:
                         sb.append("That was one of the best moves. Now your position is about the same as before.");
                         break;
-                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                    case LAGGING:
                         sb.append("Your position has degraded somewhat. You had moves that would have kept it about the same as before.");
                         break;
-                    case MUCH_WORSE_THAN_BEFORE:
+                    case WELL_BEHIND:
                         sb.append("Your position has become much worse. You had moves that would have kept it about the same as before.");
                         break;
-                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                    case LOSING:
                         sb.append("Your position is now very much worse. You had moves that would have kept it about the same as before.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
-            else if (humanPotentialMoves.numSameMoves == 1) {
-                if (humanPotentialMoves.numSomewhatWorseMoves > 0) {
+            else if (humanPotentialMoves.numEqual == 1) {
+                if (humanPotentialMoves.numLagging > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                        case LAGGING:
                             sb.append("Your position has degraded somewhat. There was a move that would have kept it the same as before.");
                             break;
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. You had moves that would have kept it the same as before or only degraded it somewhat.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had moves that would have kept it the same as before or only degraded it somewhat.");
                             break;
                         default:
@@ -350,10 +350,10 @@ public class Instructor {
                 }
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. You had a move that would have kept it the same as before.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had a move that would have kept it the same as before.");
                             break;
                         default:
@@ -361,28 +361,28 @@ public class Instructor {
                     }
                 }
             }
-            else if (humanPotentialMoves.numSomewhatWorseMoves >= 2) {
+            else if (humanPotentialMoves.numLagging >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
-                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                    case LAGGING:
                         sb.append("That was one of the best moves. Even so, now your position has degraded somewhat.");
                         break;
-                    case MUCH_WORSE_THAN_BEFORE:
+                    case WELL_BEHIND:
                         sb.append("Your position has become much worse. You had moves that would have only degraded it somewhat.");
                         break;
-                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                    case LOSING:
                         sb.append("Your position is now very much worse. You had moves that would have only degraded it somewhat.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
-            else if (humanPotentialMoves.numSomewhatWorseMoves == 1) {
-                if (humanPotentialMoves.numMuchWorseMoves > 0) {
+            else if (humanPotentialMoves.numLagging == 1) {
+                if (humanPotentialMoves.numWellBehind > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case MUCH_WORSE_THAN_BEFORE:
+                        case WELL_BEHIND:
                             sb.append("Your position has become much worse. There was a move that would have only degraded it somewhat.");
                             break;
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had moves that would have only degraded it somewhat or made it only much worse instead of very much worse.");
                             break;
                         default:
@@ -391,7 +391,7 @@ public class Instructor {
                 }
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had a move that would have have only degraded it somewhat.");
                             break;
                         default:
@@ -399,22 +399,22 @@ public class Instructor {
                     }
                 }
             }
-            else if (humanPotentialMoves.numMuchWorseMoves >= 2) {
+            else if (humanPotentialMoves.numWellBehind >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
-                    case MUCH_WORSE_THAN_BEFORE:
+                    case WELL_BEHIND:
                         sb.append("That was one of the best moves. But it doesn't help much -- your position has become much worse.");
                         break;
-                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                    case LOSING:
                         sb.append("Your position is now very much worse. You had moves that would have made it only much worse instead of very much worse.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
-            else if (humanPotentialMoves.numMuchWorseMoves == 1) {
-                if (humanPotentialMoves.numVeryMuchWorseMoves > 0) {
+            else if (humanPotentialMoves.numWellBehind == 1) {
+                if (humanPotentialMoves.numLosing > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
-                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                        case LOSING:
                             sb.append("Your position is now very much worse. You had a move that would have made it only much worse instead of very much worse.");
                             break;
                         default:
@@ -425,16 +425,16 @@ public class Instructor {
                     throw new RuntimeException("This case should not happen");
                 }
             }
-            else if (humanPotentialMoves.numVeryMuchWorseMoves >= 2) {
+            else if (humanPotentialMoves.numLosing >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
-                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                    case LOSING:
                         sb.append("Your position is now very much worse. You had no other choices.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
-            else if (humanPotentialMoves.numMuchWorseMoves == 1) {
+            else if (humanPotentialMoves.numWellBehind == 1) {
                 throw new RuntimeException("This case should not happen");
             }
             else {

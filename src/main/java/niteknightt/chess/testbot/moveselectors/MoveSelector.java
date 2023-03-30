@@ -39,7 +39,7 @@ public abstract class MoveSelector {
             bestMoveUciFormat =  legalMoves.get(0).uciFormat();
             EvaluatedMove evaluatedMove = new EvaluatedMove();
             evaluatedMove.eval = -1000.0;
-            evaluatedMove.evalCategory = Enums.MoveEvalCategory.SAME_AS_BEFORE;
+            evaluatedMove.evalCategory = Enums.MoveEvalCategory.EQUAL;
             evaluatedMove.ismate = false;
             evaluatedMove.matein = 0;
             evaluatedMove.uci = bestMoveUciFormat;
@@ -64,7 +64,7 @@ public abstract class MoveSelector {
                 bestMoveUciFormat = legalMoves.get(index).uciFormat();
                 EvaluatedMove evaluatedMove = new EvaluatedMove();
                 evaluatedMove.eval = -1000.0;
-                evaluatedMove.evalCategory = Enums.MoveEvalCategory.SAME_AS_BEFORE;
+                evaluatedMove.evalCategory = Enums.MoveEvalCategory.EQUAL;
                 evaluatedMove.ismate = false;
                 evaluatedMove.matein = 0;
                 evaluatedMove.uci = bestMoveUciFormat;

@@ -7,13 +7,13 @@ import java.util.List;
 
 public class PotentialMoves {
     public List<EvaluatedMove> evaluatedMoves = new ArrayList<>();
-    public int numVeryMuchBetterMoves = 0;
-    public int numMuchBetterMoves = 0;
-    public int numSomewhatBetterMoves = 0;
-    public int numSameMoves = 0;
-    public int numVeryMuchWorseMoves = 0;
-    public int numMuchWorseMoves = 0;
-    public int numSomewhatWorseMoves = 0;
+    public int numWinning = 0;
+    public int numWellAhead = 0;
+    public int numLeading = 0;
+    public int numEqual = 0;
+    public int numLagging = 0;
+    public int numWellBehind = 0;
+    public int numLosing = 0;
 
     public PotentialMoves(List<EvaluatedMove> moves) {
         if (moves == null) {
@@ -29,26 +29,26 @@ public class PotentialMoves {
         evaluatedMoves.add(move);
 
         switch (move.evalCategory) {
-            case VERY_MUCH_BETTER_THAN_BEFORE:
-                ++numVeryMuchBetterMoves;
+            case WINNING:
+                ++numWinning;
                 break;
-            case MUCH_BETTER_THAN_BEFORE:
-                ++numMuchBetterMoves;
+            case WELL_AHEAD:
+                ++numWellAhead;
                 break;
-            case SOMEWHAT_BETTER_THAN_BEFORE:
-                ++numSomewhatBetterMoves;
+            case LEADING:
+                ++numLeading;
                 break;
-            case SAME_AS_BEFORE:
-                ++numSameMoves;
+            case EQUAL:
+                ++numEqual;
                 break;
-            case VERY_MUCH_WORSE_THAN_BEFORE:
-                ++numVeryMuchWorseMoves;
+            case LAGGING:
+                ++numLagging;
                 break;
-            case MUCH_WORSE_THAN_BEFORE:
-                ++numMuchWorseMoves;
+            case WELL_BEHIND:
+                ++numWellBehind;
                 break;
-            case SOMEWHAT_WORSE_THAN_BEFORE:
-                ++numSomewhatWorseMoves;
+            case LOSING:
+                ++numLosing;
                 break;
             case NONE:
             default:
