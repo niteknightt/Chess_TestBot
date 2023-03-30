@@ -77,7 +77,6 @@ public class StockfishClient {
             double multiplier = (colorToMove == Enums.Color.WHITE ? 1.0 : -1.0);
             double testEval = eval * multiplier;
 
-
             int matein = 0;
             if (entry.getValue().getStrength().isForcedMate()) {
                 matein = entry.getValue().getStrength().getMateIn();
@@ -112,10 +111,10 @@ public class StockfishClient {
             }
             EvaluatedMove newmove = new EvaluatedMove();
             newmove.uci = uciFormat;
-            newmove.eval = eval;
-            newmove.evalCategory = category;
             newmove.matein = matein;
             newmove.ismate = (matein > 0);
+            newmove.eval = (matein > 0 ? -99.0 * multiplier : eval);
+            newmove.evalCategory = category;
             newmove.continuation = entry.getValue().getContinuation();
             if (breakpoint == -1) {
                 movesWithEval.add(newmove);

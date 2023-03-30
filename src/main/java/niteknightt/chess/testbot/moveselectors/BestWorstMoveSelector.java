@@ -20,7 +20,6 @@ public class BestWorstMoveSelector extends MoveSelector {
     }
 
     public Move selectMove(Board board) throws MoveSelectorException {
-        _log.debug(_gameId, "moveselector", "Starting BestWorst move selection with board having fen: " + board.getFen());
         List<Move> legalMoves = board.getLegalMoves();
         _log.debug(_gameId, "moveselector", Move.printMovesToString("These are the legal moves", legalMoves));
 

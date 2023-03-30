@@ -13,6 +13,17 @@ import java.util.*;
 
 public class InstructiveMoveSelector extends MoveSelector {
 
+    /**
+     * The number of moves in a game that is considered the "start" of the game.
+     * During these moves, the engine will play more reasonably than later in the game.
+     */
+    public static int NUM_MOVES_CONSIDERED_START = 8;
+
+    /**
+     * The number of top moves that the engine will consider during the "start" of the game.
+     */
+    public static int MAX_REASONABLE_MOVES_AT_START = 3;
+
     protected boolean _isOpportunityForHuman = false;
     protected Random _random = new Random();
 
@@ -24,7 +35,7 @@ public class InstructiveMoveSelector extends MoveSelector {
 
     public Move selectMove(Board board) throws MoveSelectorException {
         List<Move> legalMoves = board.getLegalMoves();
-        _log.debug(_gameId, "moveselector", Move.printMovesToString("These are the legal moves", legalMoves));
+        //_log.debug(_gameId, "moveselector", Move.printMovesToString("These are the legal moves", legalMoves));
 
         String bestMoveUciFormat = "";
 
@@ -45,7 +56,7 @@ public class InstructiveMoveSelector extends MoveSelector {
                 movesWithEval = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
                 Date afterCall = new Date();
                 long callTime = Math.abs(afterCall.getTime() - beforeCall.getTime());
-                _log.info(_gameId, "moveselector", "instructive;depth=10;moveNumber=" + board.getFullMoveNumber() + ";numPieces=" + board.getNumPiecesOnBoard() + ";numLegalMoves=" + legalMoves.size() + ";timeMs=" + callTime);
+                //_log.info(_gameId, "moveselector", "instructive;depth=10;moveNumber=" + board.getFullMoveNumber() + ";numPieces=" + board.getNumPiecesOnBoard() + ";numLegalMoves=" + legalMoves.size() + ";timeMs=" + callTime);
             }
             catch (Exception ex) {
                 throw new RuntimeException("Exception while calling calcMoves: " + ex);
@@ -58,7 +69,10 @@ public class InstructiveMoveSelector extends MoveSelector {
                     throw new RuntimeException("Number of moves from stockfish (" + movesWithEval.size() + ") is not the same as number of legal moves (" + legalMoves.size() + ")");
                 }
 
-                int opportunityMoveIndex = checkIfOpportunityExists(movesWithEval, board);
+                PotentialMoves potentialMoves = new PotentialMoves(movesWithEval, board);
+                _log.debug(_gameId, "moveselector", "Potential moves for engine: " + potentialMoves);
+
+                int opportunityMoveIndex = checkIfOpportunityExists(movesWithEval, potentialMoves, board);
 
                 if (opportunityMoveIndex != -1) {
                     bestMoveUciFormat = movesWithEval.get(opportunityMoveIndex).uci;
@@ -66,17 +80,18 @@ public class InstructiveMoveSelector extends MoveSelector {
                 }
                 else {
                     int finalIndex = -1;
-                    PotentialMoves potentialMoves = new PotentialMoves(movesWithEval);
                     if (potentialMoves.numWinning > 0) {
                         finalIndex = _random.nextInt(potentialMoves.numWinning);
+                        _log.debug(_gameId, "moveselector", "There are " + potentialMoves.numWinning + " winning moves - selected index " + finalIndex + " move " + new Move(movesWithEval.get(finalIndex).uci, board).algebraicFormat());
                     }
                     else if (potentialMoves.numWellAhead > 0) {
                         finalIndex = _random.nextInt(potentialMoves.numWellAhead + potentialMoves.numLeading);
+                        _log.debug(_gameId, "moveselector", "There are " + potentialMoves.numWellAhead + " well-ahead moves and " + potentialMoves.numLeading + " leading moves - selected index " + finalIndex + " move " + new Move(movesWithEval.get(finalIndex).uci, board).algebraicFormat());
                     }
                     else {
                         int numReasonableMoves = movesWithEval.size() - potentialMoves.numLosing - potentialMoves.numWellBehind;
-                        if (board.getFullMoveNumber() <= 8) {
-                            numReasonableMoves -= potentialMoves.numLagging;
+                        if (board.getFullMoveNumber() <= NUM_MOVES_CONSIDERED_START) {
+                            numReasonableMoves = Math.min(numReasonableMoves - potentialMoves.numLagging, MAX_REASONABLE_MOVES_AT_START);
                         }
                         if (numReasonableMoves == 0 || numReasonableMoves == 1) {
                             finalIndex = 0;
@@ -84,10 +99,10 @@ public class InstructiveMoveSelector extends MoveSelector {
                         else {
                             finalIndex = _random.nextInt(numReasonableMoves);
                         }
+                        _log.debug(_gameId, "moveselector", "There are " + numReasonableMoves + " reasonable moves - selected index " + finalIndex + " move " + new Move(movesWithEval.get(finalIndex).uci, board).algebraicFormat());
                     }
                     bestMoveUciFormat = movesWithEval.get(finalIndex).uci;
                     _isOpportunityForHuman = false;
-                    _log.debug(_gameId, "moveselector", "Selecting move index " + finalIndex + " out of " + movesWithEval.size() + " which is " +  movesWithEval.get(finalIndex).uci + " with eval category" + movesWithEval.get(finalIndex).evalCategory);
                 }
             }
         }
@@ -95,22 +110,27 @@ public class InstructiveMoveSelector extends MoveSelector {
         return engineMove;
     }
 
-    protected int checkIfOpportunityExists(List<EvaluatedMove> movesWithEval, Board board) {
+    protected int checkIfOpportunityExists(List<EvaluatedMove> movesWithEval, PotentialMoves potentialMoves, Board board) {
+        if (potentialMoves.numWinning + potentialMoves.numWellAhead + potentialMoves.numLeading + potentialMoves.numLagging == 0) {
+            // The possible engine moves are bad, so everything is an opportunity for the
+            // challenger, so basically nothing is.
+            return -1;
+        }
+
         int opportunityMoveIndex = -1;
-        PotentialMoves potentialMoves = new PotentialMoves(movesWithEval);
         if (potentialMoves.numLosing > 0 || potentialMoves.numWellBehind > 0) {
             for (int moveIndex = movesWithEval.size() - 1; moveIndex >= movesWithEval.size() - potentialMoves.numLosing - potentialMoves.numWellBehind; --moveIndex) {
                 EvaluatedMove currentEvaluatedMove = movesWithEval.get(moveIndex);
                 Board afterMoveBoard = board.clone();
                 afterMoveBoard.handleMoveForGame(new Move(currentEvaluatedMove.uci, afterMoveBoard));
                 List<EvaluatedMove> humanPossibleMoves = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
-                PotentialMoves potentialHumanMoves = new PotentialMoves(humanPossibleMoves);
+                PotentialMoves potentialHumanMoves = new PotentialMoves(humanPossibleMoves, afterMoveBoard);
                 if (humanPossibleMoves.size() > 1 &&
                         potentialHumanMoves.numWinning + potentialHumanMoves.numWellAhead == 1 &&
                         isNotACapture(humanPossibleMoves.get(0), afterMoveBoard) &&
                         isNotAMateIn(humanPossibleMoves.get(0))) {
                     opportunityMoveIndex = moveIndex;
-                    _log.debug(_gameId, "moveselector", "Selecting opportunity move index " + moveIndex + " out of " + movesWithEval.size() + " which is " +  movesWithEval.get(moveIndex).uci + " with eval category" + movesWithEval.get(moveIndex).evalCategory + " because it gives the challenger an opportunity");
+                    _log.debug(_gameId, "moveselector", "Selecting opportunity move index " + moveIndex + " move " + movesWithEval.get(moveIndex).uci + " because challenger can play " + humanPossibleMoves.get(0).uci + " which evals to " + humanPossibleMoves.get(0).eval + " " + humanPossibleMoves.get(0).evalCategory);
                     break;
                 }
             }

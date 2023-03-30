@@ -162,8 +162,6 @@ public abstract class BotGame implements Runnable {
             if (moveSRs.length == _moves.size() + 1) {
                 Move currentMove = new Move(moveSRs[moveSRs.length - 1], _board);
 
-                _gameLogger.info(_gameId, "game", "Challenger's move is " + currentMove.algebraicFormat());
-
                 if (!_board._isMoveLegal(currentMove)) {
                     _gameLogger.error(_gameId, "game", "Before trying the challenger's move, the board says it is illegal -- Move: " + currentMove.algebraicFormat() + " Fen: " + _board.getFen());
                     setGameState(Enums.GameState.ERROR);
@@ -176,7 +174,7 @@ public abstract class BotGame implements Runnable {
                     _moves.add(currentMove);
                     _challengerMoves.add(currentMove);
                     ++_numMovesPlayedByChallenger;
-                    _gameLogger.debug(_gameId, "game", "Did challenger's move " + currentMove.algebraicFormat() + " fen is now " + _board.getFen());
+                    _gameLogger.debug(_gameId, "game", "Played challenger's move " + currentMove.algebraicFormat() + " fen is now " + _board.getFen());
 
                     _performPostChallengerMoveTasks();
                 }
@@ -234,7 +232,6 @@ public abstract class BotGame implements Runnable {
      * Selects a move for the engine to play, and plays it.
      */
     protected void _playEngineMove() {
-        _gameLogger.debug(_gameId, "game", "About to play engine move while fen is: " + _board.getFen());
         Move engineMove = null;
 
         try {
@@ -251,13 +248,11 @@ public abstract class BotGame implements Runnable {
             return;
         }
 
-        _gameLogger.info(_gameId, "game", "Engine's move is " + engineMove.algebraicFormat());
-
         if (!_board.handleMoveForGame(engineMove)) {
             _gameLogger.error(_gameId, "game", "The board returned false when trying to play the engine's move -- Move: " + engineMove.algebraicFormat() + " Fen: " + _board.getFen());
             _handleErrorInGame(false, false, Enums.GameState.ERROR, "The computer won't let me make the move I want to make. Looks like I have to quit. Sorry.");
         }
-        _gameLogger.debug(_gameId, "mainloop", "Played engine move " + engineMove.algebraicFormat() + " fen is " + _board.getFen());
+        _gameLogger.debug(_gameId, "mainloop", "Played engine move " + engineMove.algebraicFormat() + " fen is now " + _board.getFen());
 
         _moves.add(engineMove);
         _engineMoves.add(engineMove);
@@ -417,7 +412,6 @@ public abstract class BotGame implements Runnable {
         try {
             _eventLock.lock();
             _events.add(event);
-            _gameLogger.info(_gameId, "event", "Added event " + event.getClass().toString());
         }
         catch (Exception ex) {
 
@@ -435,7 +429,6 @@ public abstract class BotGame implements Runnable {
             }
 
             LichessGameEvent event = _events.remove();
-            _gameLogger.info(_gameId, "event", "Handling event " + event.getClass().toString());
 
             if (event instanceof LichessGameFullEvent) {
                 String whitePlayerId = ((LichessGameFullEvent)event).white.id;
@@ -451,7 +444,8 @@ public abstract class BotGame implements Runnable {
                 String username = ((LichessChatLineEvent)event).username;
                 String text = ((LichessChatLineEvent)event).text;
                 if (username.equalsIgnoreCase(BotManager.BOT_NAME)) {
-                    _gameLogger.debug(_gameId, "event", "Received chat message that the bot sent");
+                    // do nothing
+                    // _gameLogger.debug(_gameId, "event", "Received chat message that the bot sent");
                 }
                 else {
                     _gameLogger.info(_gameId, "event", "Received chat message from challenger");

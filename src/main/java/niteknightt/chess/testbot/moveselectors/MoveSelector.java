@@ -27,7 +27,7 @@ public abstract class MoveSelector {
 
     public List<EvaluatedMove> getAllMoves(Board board) {
         List<Move> legalMoves = board.getLegalMoves();
-        _log.debug(_gameId, "moveselector", Move.printMovesToString("These are the legal moves", legalMoves));
+        //_log.debug(_gameId, "moveselector", Move.printMovesToString("These are the legal moves", legalMoves));
 
         String bestMoveUciFormat = "";
 
@@ -53,12 +53,14 @@ public abstract class MoveSelector {
                 movesWithEval = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
                 Date afterCall = new Date();
                 long callTime = Math.abs(afterCall.getTime() - beforeCall.getTime());
-                _log.info(_gameId, "moveselector", "instructive;depth=10;moveNumber=" + board.getFullMoveNumber() + ";numPieces=" + board.getNumPiecesOnBoard() + ";numLegalMoves=" + legalMoves.size() + ";timeMs=" + callTime);
+                //_log.info(_gameId, "moveselector", "instructive;depth=10;moveNumber=" + board.getFullMoveNumber() + ";numPieces=" + board.getNumPiecesOnBoard() + ";numLegalMoves=" + legalMoves.size() + ";timeMs=" + callTime);
             }
             catch (Exception ex) {
-                _log.error(_gameId, "moveselector", "Exception while calling calcMoves: " + ex.toString());
+                throw new RuntimeException("Exception while calling calcMoves: " + ex.toString());
             }
             if (movesWithEval.size() == 0) {
+                throw new RuntimeException("Zero moves from stockfish even though there are legal moves");
+                /*
                 _log.error(_gameId, "moveselector", "Zero moves from stockfish even though there are legal moves");
                 int index = _random.nextInt(legalMoves.size());
                 bestMoveUciFormat = legalMoves.get(index).uciFormat();
@@ -69,10 +71,11 @@ public abstract class MoveSelector {
                 evaluatedMove.matein = 0;
                 evaluatedMove.uci = bestMoveUciFormat;
                 return Arrays.asList(evaluatedMove);
+                */
             }
             else {
                 if (movesWithEval.size() != legalMoves.size()) {
-                    _log.error(_gameId, "moveselector", "Number of moves from stockfish (" + movesWithEval.size() + ") is not the same as number of legal moves (" + legalMoves.size() + ")");
+                    throw new RuntimeException("Number of moves from stockfish (" + movesWithEval.size() + ") is not the same as number of legal moves (" + legalMoves.size() + ")");
                 }
                 return movesWithEval;
             }

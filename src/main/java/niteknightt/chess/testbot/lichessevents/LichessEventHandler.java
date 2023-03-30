@@ -48,6 +48,14 @@ public class LichessEventHandler {
                     LichessInterface.declineChallenge(event.challenge.id, "noBot");
                     return;
                 }
+                if ((event.challenge.challenger.title == null || !event.challenge.challenger.title.equals("BOT")) &&
+                        !event.challenge.challenger.id.equalsIgnoreCase("flowerhd") &&
+                        !event.challenge.challenger.id.equalsIgnoreCase("niteknightt")) {
+                    // Rated challenge from human - decline
+                    AppLogger.getInstance().info("Declining challenge ID " + event.challenge.id + " because it is not from one of us.");
+                    LichessInterface.declineChallenge(event.challenge.id, "later");
+                    return;
+                }
 
                 // UNCOMMENT THIS CODE WHILE WORKING ON THE PROGRAM.
                 // COMMENT IT WHEN YOU WANT THE BOT TO ACCEPT CHALLENGES.

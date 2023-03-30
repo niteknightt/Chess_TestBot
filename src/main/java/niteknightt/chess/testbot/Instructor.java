@@ -81,25 +81,25 @@ public class Instructor {
             sb.append("That was the best move!");
             switch (humanPotentialMoves.evaluatedMoves.get(0).evalCategory) {
                 case WINNING:
-                    sb.append(" You now have a winning position.");
+                    sb.append(" Your position is winning.");
                     break;
                 case WELL_AHEAD:
-                    sb.append(" Your position is very much better than your opponent's.");
+                    sb.append(" Your position is very good.");
                     break;
                 case LEADING:
-                    sb.append(" Your position is now somewhat better than your opponent's.");
+                    sb.append(" Your position is better than your opponent's.");
                     break;
                 case EQUAL:
-                    sb.append(" Your position remains about equal to your opponent's.");
+                    sb.append(" Your position is about equal to your opponent.");
                     break;
                 case LAGGING:
-                    sb.append(" But unfortunately, your position is somewhat worse than your opponent's.");
+                    sb.append(" Your position is worse than your opponent's.");
                     break;
                 case WELL_BEHIND:
-                    sb.append(" Alas, your position is much worse than your opponent's.");
+                    sb.append(" Your position is very bad.");
                     break;
                 case LOSING:
-                    sb.append(" Either way, though, your are in a losing position.");
+                    sb.append(" Your position is losing.");
                     break;
                 default:
                     throw new RuntimeException("The category for best move was not defined");
@@ -441,6 +441,8 @@ public class Instructor {
                 throw new RuntimeException("This case should not happen");
             }
         }
+
+        game._gameLogger.debug(game.getGameId(), "game", "Move review: " + sb.toString());
 
         try{
             LichessInterface.writeChat(game.getGameId(), sb.toString());

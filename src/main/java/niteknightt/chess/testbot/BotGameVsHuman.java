@@ -28,7 +28,7 @@ public class BotGameVsHuman extends BotGame {
 
         if (_engineColor == Enums.Color.BLACK) {
             List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
-            PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
+            PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves, _board);
             _allPotentialMoves.add(potentialMoves);
             _humanPotentialMoves.add(potentialMoves);
         }
@@ -77,7 +77,7 @@ public class BotGameVsHuman extends BotGame {
     @Override
     protected void _performPostChallengerMoveTasks() {
         List<EvaluatedMove> nextEngineMoves =  _moveSelector.getAllMoves(_board);
-        PotentialMoves potentialMoves = new PotentialMoves(nextEngineMoves);
+        PotentialMoves potentialMoves = new PotentialMoves(nextEngineMoves, _board);
         _allPotentialMoves.add(potentialMoves);
         _enginePotentialMoves.add(potentialMoves);
 
@@ -91,18 +91,22 @@ public class BotGameVsHuman extends BotGame {
     @Override
     protected void _performPostEngineMoveTasks() {
         List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
-        PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
+        PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves, _board);
         _allPotentialMoves.add(potentialMoves);
         _humanPotentialMoves.add(potentialMoves);
 
+        String opportunityString = "";
         if (_algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
             if (((InstructiveMoveSelector)_moveSelector).isOpportunityForHuman()) {
+                opportunityString = " with opportunity";
                 try {
                     LichessInterface.writeChat(_gameId, "Opportunities await!");
                 }
                 catch (LichessApiException ex2) { }
             }
         }
+
+        _gameLogger.debug(_gameId, "moveselector", "Potential moves for challenger: " + potentialMoves + opportunityString);
     }
 
     /**
