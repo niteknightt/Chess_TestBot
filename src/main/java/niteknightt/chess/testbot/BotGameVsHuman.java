@@ -39,13 +39,7 @@ public class BotGameVsHuman extends BotGame {
     protected void _setAlgorithmFromChallengerProps() {
         OpponentProperties props = OpponentProperties.getForOpponent(_challenge.challenger.id);
         if (props != null && props.algorithm != Enums.EngineAlgorithm.NONE) {
-            // TODO: GET RID OF THIS ONCE I FIX THE PROBLEM WITH INTERNAL EVALUATION
-            if (props.algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
-                _setAlgorithm(Enums.EngineAlgorithm.WORST_MOVE);
-            }
-            else {
-                _setAlgorithm(props.algorithm);
-            }
+            _setAlgorithm(props.algorithm);
         }
         else {
             _setAlgorithm(DEFAULT_ALGORITHM);
@@ -107,9 +101,6 @@ public class BotGameVsHuman extends BotGame {
             // Only do this part if the chat line starts with "algo"
             String remainingText = text.substring("algo".length());
             try {
-                LichessInterface.writeChat(_gameId, "Sorry, this command is not supported for the next day or so. Try it later!");
-                return;
-                /*
                 int algoCode = Integer.parseInt(remainingText.trim());
                 if (algoCode < 0 || algoCode > 3) {
                     _gameLogger.info(_gameId, "event", "Invalid algo choice: " + text);
@@ -132,7 +123,6 @@ public class BotGameVsHuman extends BotGame {
                     }
                 }
                 _gameLogger.info(_gameId, "event", "User sent valid algo choice: " + text);
-                 */
             }
             catch (LichessApiException ex) { }
             catch (NumberFormatException e) {

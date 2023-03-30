@@ -85,7 +85,7 @@ public abstract class BotGame implements Runnable {
      * This should happen once per game after starting up the bot.
      */
     protected void _handleReceivingFullGameState(String whitePlayerId, String blackPlayerId) {
-        if (blackPlayerId.equals("niteknighttbot")) {
+        if (blackPlayerId.equalsIgnoreCase(BotManager.BOT_NAME)) {
             _engineColor = Enums.Color.BLACK;
             _challengerColor = Enums.Color.WHITE;
         }
@@ -447,7 +447,7 @@ public abstract class BotGame implements Runnable {
             else if (event instanceof LichessChatLineEvent) {
                 String username = ((LichessChatLineEvent)event).username;
                 String text = ((LichessChatLineEvent)event).text;
-                if (username.equals("niteknighttbot")) {
+                if (username.equalsIgnoreCase(BotManager.BOT_NAME)) {
                     _gameLogger.debug(_gameId, "event", "Received chat message that the bot sent");
                 }
                 else {

@@ -22,6 +22,7 @@ public class LichessEventReader implements Runnable {
     protected boolean _done = false;
     protected LichessEventHandler _eventHandler;
     protected Queue<LichessEvent> _events = new LinkedList<LichessEvent>();
+    protected String _prevChallengeEventString = ""; // See note in handleEventString().
 
     public boolean done() { return _done; }
     public void setDone() { _done = true; }
@@ -70,7 +71,16 @@ public class LichessEventReader implements Runnable {
 
         switch (event.eventType) {
             case CHALLENGE:
-                _eventHandler.handleChallenge(event);
+                if (eventString.equals(_prevChallengeEventString)) {
+                    // Do nothing if the challenge has already been sent.
+                    // This seems to be a bug with Lichess that when a user
+                    // requests a rematch, it sends the challenge twice,
+                    // but I'm not sure what's going on.
+                }
+                else {
+                    _eventHandler.handleChallenge(event);
+                    _prevChallengeEventString = eventString; // See note above.
+                }
                 break;
             case CHALLENGE_CANCELED:
                 _eventHandler.handleChallengeCanceled(event);
