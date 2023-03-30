@@ -79,7 +79,7 @@ publishing {
 task prepareDirs {
     mustRunAfter clean
     doLast {
-        def runtimePath = System.getenv("NN_RUNTIME_FILE_PATH")
+        def runtimePath = System.getenv("NN_RUNTIME_FILE_PATH") + File.separator + System.getenv("NN_NITEKNIGHTTBOT_APP_NAME")
         def folder = new File("$runtimePath")
 
         if( !folder.exists() ) {
