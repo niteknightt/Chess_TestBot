@@ -62,60 +62,101 @@ public class StockfishClient {
         var analysis = uci.analysis(10).getResultOrThrow();
         var moves = analysis.getAllMoves();
         if (moves.size() != numMoves) {
-            logger.debugOutput(_gameId, "Num moves from UCI: " + moves.size() + " Num legal moves: " + numMoves);
-            logger.debugOutput(_gameId, "Trying again");
-            var analysis1 = uci.analysis(10).getResultOrThrow();
-            var moves1 = analysis1.getAllMoves();
-            logger.debugOutput(_gameId, "Retry Num moves from UCI: " + moves1.size() + " Num legal moves: " + numMoves);
+            throw new RuntimeException("Expected to get " + numMoves + " from StockFish but got " + moves.size());
+            //logger.debugOutput(_gameId, "Num moves from UCI: " + moves.size() + " Num legal moves: " + numMoves);
+            //logger.debugOutput(_gameId, "Trying again");
+            //var analysis1 = uci.analysis(10).getResultOrThrow();
+            //var moves1 = analysis1.getAllMoves();
+            //logger.debugOutput(_gameId, "Retry Num moves from UCI: " + moves1.size() + " Num legal moves: " + numMoves);
         }
         List<EvaluatedMove> movesWithEval = new ArrayList<EvaluatedMove>();
         for (Map.Entry<Integer, Move> entry : moves.entrySet()) {
             String uciFormat = entry.getValue().getLan();
             Double eval = entry.getValue().getStrength().getScore();
-            Enums.MoveEvalCategory category = Helpers.categoryFromEval(eval, Enums.Color.WHITE);
 
+            // Stockfish always returns evals from the POV of the player, but we like
+            // to store evals from the POV of White.
             double multiplier = (colorToMove == Enums.Color.WHITE ? 1.0 : -1.0);
-            double testEval = eval * multiplier;
+            eval *= multiplier;
+
+            // Stockfish returns matein as a positive number if it is mate for the current
+            // user and negative if it is mate for the opponent.
 
             int matein = 0;
             if (entry.getValue().getStrength().isForcedMate()) {
                 matein = entry.getValue().getStrength().getMateIn();
             }
+            if (matein < 0) {
+                if (colorToMove == Enums.Color.WHITE) {
+                    // White's move
+                    // Examples:
+                    //   Black has mate in 2:
+                    //      -900 - (99 + -2) = -900 - 97 = -997
+                    //   Black has mate in 4:
+                    //      -900 - (99 + -4) = -900 - 95 = -995 -- so this move is preferable
+                    eval = -900.0 - (99.0 + (double)matein);
+                }
+                else {
+                    // Black's move
+                    // Examples:
+                    //   White has mate in 2:
+                    //      900 + (99 + -2) = 900 + 97 = 997
+                    //   White has mate in 4:
+                    //      900 + (99 + -4) = 900 + 95 = 995 -- so this move is preferable
+                    eval = 900.0 + (99.0 + (double)matein);
+                    matein = matein * (-1);
+                }
+            }
+            else if (matein > 0) {
+                if (colorToMove == Enums.Color.WHITE) {
+                    // White's move
+                    // Examples:
+                    //   White has mate in 2:
+                    //      900 + (99 - 2) = 900 + 97 = 997
+                    //   White has mate in 4:
+                    //      900 + (99 - 4) = 900 + 95 = 995 -- so this move is worse
+                    eval = 900.0 + (99.0 - (double)matein);
+                }
+                else {
+                    // Black's move
+                    // Examples:
+                    //   Black has mate in 2:
+                    //      -900 - (99 - 2) = -900 - 97 = -997
+                    //   Black has mate in 4:
+                    //      -900 - (99 - 4) = -900 - 95 = -995 -- so this move is worse
+                    eval = -900.0 - (99.0 - (double)matein);
+                    matein = matein * (-1);
+                }
+            }
+
+            Enums.MoveEvalCategory category = Helpers.categoryFromEval(eval, colorToMove);
+
+            // Order the moves from best to worst for the player.
+            // TODO: Check with UCI spec if this should automatically be done, so no
+            // need for us to do it.
+            // From the way things are currently working, StockFish does order the moves,
+            // but the matein moves are always at the end and I don't know if they are
+            // ordered.
             int breakpoint = -1;
             for (int i = 0; i < movesWithEval.size(); ++i) {
                 EvaluatedMove moveFromList = movesWithEval.get(i);
-                if (colorToMove == Enums.Color.WHITE) {
-                    if (matein > 0) {
-                        if (!moveFromList.ismate) {
-                            breakpoint = i;
-                            break;
-                        }
-                        else if (moveFromList.matein > matein) {
-                            breakpoint = i;
-                            break;
-                        }
-                    }
-                    else {
-                        if (!moveFromList.ismate) {
-                            if (colorToMove == Enums.Color.WHITE && moveFromList.eval < eval.doubleValue()) {
-                                breakpoint = i;
-                                break;
-                            }
-                            if (colorToMove == Enums.Color.BLACK && moveFromList.eval > eval.doubleValue()) {
-                                breakpoint = i;
-                                break;
-                            }
-                        }
-                    }
+                if (colorToMove == Enums.Color.WHITE && moveFromList.eval < eval.doubleValue()) {
+                    breakpoint = i;
+                    break;
+                }
+                else if (colorToMove == Enums.Color.BLACK && moveFromList.eval > eval.doubleValue()) {
+                    breakpoint = i;
+                    break;
                 }
             }
             EvaluatedMove newmove = new EvaluatedMove();
             newmove.uci = uciFormat;
             newmove.matein = matein;
-            newmove.ismate = (matein > 0);
-            newmove.eval = (matein > 0 ? -99.0 * multiplier : eval);
+            newmove.ismate = (matein != 0);
+            newmove.eval = eval;
             newmove.evalCategory = category;
             newmove.continuation = entry.getValue().getContinuation();
+
             if (breakpoint == -1) {
                 movesWithEval.add(newmove);
             }

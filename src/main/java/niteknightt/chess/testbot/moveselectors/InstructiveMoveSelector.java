@@ -110,7 +110,7 @@ public class InstructiveMoveSelector extends MoveSelector {
         return engineMove;
     }
 
-    protected int checkIfOpportunityExists(List<EvaluatedMove> movesWithEval, PotentialMoves potentialMoves, Board board) {
+    public int checkIfOpportunityExists(List<EvaluatedMove> movesWithEval, PotentialMoves potentialMoves, Board board) {
         if (potentialMoves.numWinning + potentialMoves.numWellAhead + potentialMoves.numLeading + potentialMoves.numLagging == 0) {
             // The possible engine moves are bad, so everything is an opportunity for the
             // challenger, so basically nothing is.
@@ -122,8 +122,9 @@ public class InstructiveMoveSelector extends MoveSelector {
             for (int moveIndex = movesWithEval.size() - 1; moveIndex >= movesWithEval.size() - potentialMoves.numLosing - potentialMoves.numWellBehind; --moveIndex) {
                 EvaluatedMove currentEvaluatedMove = movesWithEval.get(moveIndex);
                 Board afterMoveBoard = board.clone();
-                afterMoveBoard.handleMoveForGame(new Move(currentEvaluatedMove.uci, afterMoveBoard));
-                List<EvaluatedMove> humanPossibleMoves = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
+                boolean result = afterMoveBoard.handleMoveForGame(new Move(currentEvaluatedMove.uci, afterMoveBoard));
+                _stockfishClient.setPosition(afterMoveBoard.getFen());
+                List<EvaluatedMove> humanPossibleMoves = _stockfishClient.calcMoves(afterMoveBoard.getLegalMoves().size(), 2000, afterMoveBoard.whosTurnToGo());
                 PotentialMoves potentialHumanMoves = new PotentialMoves(humanPossibleMoves, afterMoveBoard);
                 if (humanPossibleMoves.size() > 1 &&
                         potentialHumanMoves.numWinning + potentialHumanMoves.numWellAhead == 1 &&
@@ -135,6 +136,8 @@ public class InstructiveMoveSelector extends MoveSelector {
                 }
             }
         }
+
+        _stockfishClient.setPosition(board.getFen());
 
         return opportunityMoveIndex;
     }
