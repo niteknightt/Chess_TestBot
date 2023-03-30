@@ -27,12 +27,10 @@ public class BotGameVsHuman extends BotGame {
         _writeWelcomeToChallenger();
 
         if (_engineColor == Enums.Color.BLACK) {
-            if (_algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
-                List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
-                PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
-                _allPotentialMoves.add(potentialMoves);
-                _humanPotentialMoves.add(potentialMoves);
-            }
+            List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
+            PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
+            _allPotentialMoves.add(potentialMoves);
+            _humanPotentialMoves.add(potentialMoves);
         }
     }
 
@@ -78,12 +76,12 @@ public class BotGameVsHuman extends BotGame {
 
     @Override
     protected void _performPostChallengerMoveTasks() {
-        if (_algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
-            List<EvaluatedMove> nextEngineMoves =  _moveSelector.getAllMoves(_board);
-            PotentialMoves potentialMoves = new PotentialMoves(nextEngineMoves);
-            _allPotentialMoves.add(potentialMoves);
-            _enginePotentialMoves.add(potentialMoves);
+        List<EvaluatedMove> nextEngineMoves =  _moveSelector.getAllMoves(_board);
+        PotentialMoves potentialMoves = new PotentialMoves(nextEngineMoves);
+        _allPotentialMoves.add(potentialMoves);
+        _enginePotentialMoves.add(potentialMoves);
 
+        if (_algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
             if (!Instructor.reviewLastHumanMove(this)) {
                 setGameState(Enums.GameState.ERROR);
             }
@@ -92,11 +90,12 @@ public class BotGameVsHuman extends BotGame {
 
     @Override
     protected void _performPostEngineMoveTasks() {
+        List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
+        PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
+        _allPotentialMoves.add(potentialMoves);
+        _humanPotentialMoves.add(potentialMoves);
+
         if (_algorithm == Enums.EngineAlgorithm.INSTRUCTIVE) {
-            List<EvaluatedMove> nextHumanMoves =  _moveSelector.getAllMoves(_board);
-            PotentialMoves potentialMoves = new PotentialMoves(nextHumanMoves);
-            _allPotentialMoves.add(potentialMoves);
-            _humanPotentialMoves.add(potentialMoves);
             if (((InstructiveMoveSelector)_moveSelector).isOpportunityForHuman()) {
                 try {
                     LichessInterface.writeChat(_gameId, "Opportunities await!");

@@ -18,10 +18,6 @@ public class JustTheBestMoveSelector extends MoveSelector {
         super(random, algorithm, stockfishClient, log, gameId);
     }
 
-    public List<EvaluatedMove> getAllMoves(Board board) {
-        throw new RuntimeException("getAllMoves not implemented for JustTheBestMoveSelector");
-    }
-
     public Move selectMove(Board board) throws MoveSelectorException {
         List<Move> legalMoves = board.getLegalMoves();
         _log.debug(_gameId, "moveselector", Move.printMovesToString("These are the legal moves", legalMoves));

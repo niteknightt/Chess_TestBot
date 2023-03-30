@@ -19,10 +19,6 @@ public class BestWorstMoveSelector extends MoveSelector {
         super(random, algorithm, stockfishClient, log, gameId);
     }
 
-    public List<EvaluatedMove> getAllMoves(Board board) {
-        throw new RuntimeException("getAllMoves not implemented for BestWorstMoveSelector");
-    }
-
     public Move selectMove(Board board) throws MoveSelectorException {
         _log.debug(_gameId, "moveselector", "Starting BestWorst move selection with board having fen: " + board.getFen());
         List<Move> legalMoves = board.getLegalMoves();
