@@ -86,10 +86,10 @@ public class LichessEventHandler {
             _mainLock.lock();
 
             if (_botManager.forceGameEnd(event.challenge)) {
-                AppLogger.getInstance().info("Canceled challenge ID " + event.challenge.id + " -- currently there are " + _botManager.getNumRunningChallenges() + " running games");
+                AppLogger.getInstance().info("Got cancellation of Canceled challenge ID " + event.challenge.id + " -- currently there are " + _botManager.getNumRunningChallenges() + " running games");
             }
             else {
-                AppLogger.getInstance().error("Got cancelation of challenge ID " + event.challenge.id + " but it is not in the list of games");
+                AppLogger.getInstance().error("Got cancellation of challenge ID " + event.challenge.id + " but it is not in the list of games");
             }
         }
         finally {
@@ -98,7 +98,11 @@ public class LichessEventHandler {
     }
 
     public void handleChallengeDeclined(LichessEvent event) {
-        AppLogger.getInstance().error("Got challenge declined for challenge ID " + event.challenge.id + " -- don't know what to do with this");
+        if (event.challenge.challenger.id.equals(BotManager.BOT_NAME)) {
+            // This is just a notification of the decline that we actually did.
+            return;
+        }
+        AppLogger.getInstance().error("Got challenge declined for challenge ID " + event.challenge.id + " challengee " + event.challenge.challengee.id + " reason " + event.challenge.declineReason);
     }
 
     public void handleGameStart(LichessEvent event) {

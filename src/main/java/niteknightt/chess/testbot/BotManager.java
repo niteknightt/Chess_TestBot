@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class BotManager implements Runnable {
 
+    public static String BOT_NAME = "niteknighttbot";
     public static int MAX_CONCURRENT_CHALLENGES = 5;
 
     protected Map<String, BotGame> _games;
