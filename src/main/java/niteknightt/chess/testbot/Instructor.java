@@ -122,25 +122,25 @@ public class Instructor {
             if (humanPotentialMoves.numWinning >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
                     case WINNING:
-                        sb.append("That was one of the best moves. Now your position is very much better than before.");
+                        sb.append("That was one of the best moves. Your position is winning.");
                         break;
                     case WELL_AHEAD:
-                        sb.append("You much improved your position from before, but there were even better moves that would have greatly improved it.");
+                        sb.append("Your position is very good, but there were even better moves that would have given you a winning position.");
                         break;
                     case LEADING:
-                        sb.append("You improved your position from before, but there were even better moves that would have greatly improved it.");
+                        sb.append("Your position is better than your opponent's, but there were even better moves that would have given you a winning position.");
                         break;
                     case EQUAL:
-                        sb.append("You missed moves that would have greatly improved your position. Instead, it remains about the same.");
+                        sb.append("You missed moves that would have given you a winning position. Instead, you are about equal with your opponent.");
                         break;
                     case LAGGING:
-                        sb.append("Your position has degraded somewhat. You had moves that would have greatly improved it.");
+                        sb.append("Your position is worse than your opponent's. You had moves that would have given you a winning position.");
                         break;
                     case WELL_BEHIND:
-                        sb.append("Your position has become much worse. You had moves that would have greatly improved it.");
+                        sb.append("Your position is very bad. You had moves that would have given you a winning position.");
                         break;
                     case LOSING:
-                        sb.append("Your position is now very much worse. You had moves that would have greatly improved it.");
+                        sb.append("Your position is losing. You had moves that would have given you a winning position.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -150,22 +150,22 @@ public class Instructor {
                 if (humanPotentialMoves.numWellAhead > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
                         case WELL_AHEAD:
-                            sb.append("You much improved your position from before, but there was an even better move that would have greatly improved it.");
+                            sb.append("Your position is very good, but there was an even better move that would have given you a winning position.");
                             break;
                         case LEADING:
-                            sb.append("You improved your position from before, but there were even better moves that would have greatly or much improved it.");
+                            sb.append("Your position is better than your opponent's, but there were better moves that would have given you a winning or very good position.");
                             break;
                         case EQUAL:
-                            sb.append("You missed moves that would have greatly or much improved your position. Instead, it remains about the same.");
+                            sb.append("You missed moves that would have given you a winning or very good position. Instead, you are about equal with your opponent.");
                             break;
                         case LAGGING:
-                            sb.append("Your position has degraded somewhat. You had moves that would have greatly or much improved it.");
+                            sb.append("Your position is worse than your opponent's. You had moves that would have given you a winning or very good position.");
                             break;
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. You had moves that would have greatly or much improved it.");
+                            sb.append("Your position is very bad. You had moves that would have given you a winning or very good position.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had moves that would have greatly or much improved it.");
+                            sb.append("Your position is losing. You had moves that would have given you a winning or very good position.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -174,19 +174,19 @@ public class Instructor {
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
                         case LEADING:
-                            sb.append("You improved your position from before, but there was an even better move that would have greatly improved it.");
+                            sb.append("Your position is better than your opponent's, but there was an even better move that would have given you a winning position.");
                             break;
                         case EQUAL:
-                            sb.append("You missed a move that would have greatly improved your position. Instead, it remains about the same.");
+                            sb.append("You missed a move that would have given you a winning position. Instead, you are about equal with your opponent.");
                             break;
                         case LAGGING:
-                            sb.append("Your position has degraded somewhat You had a move that would have greatly improved it.");
+                            sb.append("Your position is worse than your opponent's. You had a move that would have given you a winning position.");
                             break;
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse You had a move that would have greatly improved it.");
+                            sb.append("Your position is very bad. You had a move that would have given you a winning position.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse You had a move that would have greatly improved it.");
+                            sb.append("Your position is losing. You had a move that would have given you a winning position.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -196,22 +196,22 @@ public class Instructor {
             else if (humanPotentialMoves.numWellAhead >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
                     case WELL_AHEAD:
-                        sb.append("That was one of the best moves. Now your position is much better than before.");
+                        sb.append("That was one of the best moves. Your position is very good.");
                         break;
                     case LEADING:
-                        sb.append("You improved your position from before, but there were even better moves that would have much improved it.");
+                        sb.append("Your position is better than your opponent's, but there were even better moves that would have given you a very good position.");
                         break;
                     case EQUAL:
-                        sb.append("You missed moves that would have much improved your position. Instead, it remains about the same.");
+                        sb.append("You missed moves that would have given you a very good position. Instead, you are about equal with your opponent.");
                         break;
                     case LAGGING:
-                        sb.append("Your position has degraded somewhat. You had moves that would have much improved it.");
+                        sb.append("Your position is worse than your opponent's. You had moves that would given you a very good position.");
                         break;
                     case WELL_BEHIND:
-                        sb.append("Your position has become much worse. You had moves that would have much improved it.");
+                        sb.append("Your position is very bad. You had moves that would given you a very good position.");
                         break;
                     case LOSING:
-                        sb.append("Your position is now very much worse You had moves that would have much improved it.");
+                        sb.append("Your position is losing. You had moves that would have given you a very good position.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -221,19 +221,19 @@ public class Instructor {
                 if (humanPotentialMoves.numLeading > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
                         case LEADING:
-                            sb.append("You improved your position from before, but there was an even better move that would have much improved it.");
+                            sb.append("Your position is better than your opponent's, but there was an even better move that would have given you a very good position.");
                             break;
                         case EQUAL:
-                            sb.append("You missed moves that would have improved or much improved your position. Instead, it remains about the same.");
+                            sb.append("You missed moves that would have given you a very good position or at least be better than your opponent. Instead, you are about equal with your opponent.");
                             break;
                         case LAGGING:
-                            sb.append("Your position has degraded somewhat You had moves that would have improved or much improved it.");
+                            sb.append("Your position is worse than your opponent's. You had moves that would have given you a very good position or at least be better than your opponent.");
                             break;
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. You had moves that would have improved or much improved it.");
+                            sb.append("Your position is very bad. You had moves that would have given you a very good position or at least be better than your opponent.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had moves that would have improved or much improved it.");
+                            sb.append("Your position is losing. You had moves that would have given you a very good position or at least be better than your opponent.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -242,16 +242,16 @@ public class Instructor {
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
                         case EQUAL:
-                            sb.append("You missed a move that would have much improved your position. Instead, it remains about the same.");
+                            sb.append("You missed moves that would have given you a very good position. Instead, you are about equal with your opponent.");
                             break;
                         case LAGGING:
-                            sb.append("Your position has degraded somewhat You had a move that would have much improved it.");
+                            sb.append("Your position is worse than your opponent's. You had a move that would have given you a very good position.");
                             break;
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. You had a move that would have much improved it.");
+                            sb.append("Your position is very bad. You had a move that would have given you a very good position.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had a move that would have much improved it.");
+                            sb.append("Your position is losing. You had a move that would have given you a very good position.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -261,19 +261,19 @@ public class Instructor {
             else if (humanPotentialMoves.numLeading >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
                     case LEADING:
-                        sb.append("That was one of the best moves. Now your position is better than before.");
+                        sb.append("That was one of the best moves. Your position is better than your opponent's.");
                         break;
                     case EQUAL:
-                        sb.append("You missed moves that would have improved your position. Instead, it remains about the same.");
+                        sb.append("You missed moves that would have given you a better position than your opponent's. Instead, you are about equal with your opponent.");
                         break;
                     case LAGGING:
-                        sb.append("Your position has degraded somewhat. You had moves that would have improved it.");
+                        sb.append("Your position is worse than your opponent's. You had moves that would have given you a better position than your opponent's.");
                         break;
                     case WELL_BEHIND:
-                        sb.append("Your position has become much worse. You had moves that would have improved it.");
+                        sb.append("Your position is very bad. You had moves that would have given you a better position than your opponent's.");
                         break;
                     case LOSING:
-                        sb.append("Your position is now very much worse. You had moves that would have improved it.");
+                        sb.append("Your position is losing. You had moves that would have given you a better position than your opponent's.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -283,16 +283,16 @@ public class Instructor {
                 if (humanPotentialMoves.numEqual > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
                         case EQUAL:
-                            sb.append("You kept your position about the same, but there was a better move that would have improved it.");
+                            sb.append("Your position is about equal with your opponent, but there was a better move that would have given you a better position than your opponent's.");
                             break;
                         case LAGGING:
-                            sb.append("Your position has degraded somewhat. You had moves that would have improved it or kept it the same.");
+                            sb.append("Your position is worse than your opponent's. You had moves that would have given you a better position than your opponent's or at least made it about equal with your opponent.");
                             break;
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. You had moves that would have improved it or kept it the same.");
+                            sb.append("Your position is very bad. You had moves that would have given you a better position than your opponent's or at least made it about equal with your opponent.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had moves that would have improved it or kept it the same.");
+                            sb.append("Your position is losing. You had moves that would have given you a better position than your opponent's or at least made it about equal with your opponent.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -301,13 +301,13 @@ public class Instructor {
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
                         case LAGGING:
-                            sb.append("Your position has degraded somewhat. You had a move that would have improved it.");
+                            sb.append("Your position is worse than your opponent's. You had a move that would have given you a better position than your opponent's.");
                             break;
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. You had a move that would have improved it.");
+                            sb.append("Your position is very bad. You had a move that would have given you a better position than your opponent's.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had a move that would have improved it.");
+                            sb.append("Your position is losing. You had a move that would have given you a better position than your opponent's.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -317,16 +317,16 @@ public class Instructor {
             else if (humanPotentialMoves.numEqual >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
                     case EQUAL:
-                        sb.append("That was one of the best moves. Now your position is about the same as before.");
+                        sb.append("That was one of the best moves. Now your position is about equal with your opponent.");
                         break;
                     case LAGGING:
-                        sb.append("Your position has degraded somewhat. You had moves that would have kept it about the same as before.");
+                        sb.append("Your position is worse than your opponent's. You had moves that would have made it about equal with your opponent.");
                         break;
                     case WELL_BEHIND:
-                        sb.append("Your position has become much worse. You had moves that would have kept it about the same as before.");
+                        sb.append("Your position is very bad. You had moves that would have made it about equal with your opponent.");
                         break;
                     case LOSING:
-                        sb.append("Your position is now very much worse. You had moves that would have kept it about the same as before.");
+                        sb.append("Your position is losing. You had moves that would have made it about equal with your opponent.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -336,13 +336,13 @@ public class Instructor {
                 if (humanPotentialMoves.numLagging > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
                         case LAGGING:
-                            sb.append("Your position has degraded somewhat. There was a move that would have kept it the same as before.");
+                            sb.append("Your position is worse than your opponent's. There was a move that would have made it about equal with your opponent.");
                             break;
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. You had moves that would have kept it the same as before or only degraded it somewhat.");
+                            sb.append("Your position is very bad. You had moves that would have made it about equal with your opponent or at worst made it just worse than your opponent's.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had moves that would have kept it the same as before or only degraded it somewhat.");
+                            sb.append("Your position is losing. You had moves that would have made it about equal with your opponent or at worst made it just worse than your opponent's.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -351,10 +351,10 @@ public class Instructor {
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. You had a move that would have kept it the same as before.");
+                            sb.append("Your position is very bad. You had a move that would have made it about equal with your opponent.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had a move that would have kept it the same as before.");
+                            sb.append("Your position is losing. You had a move that would have made it about equal with your opponent.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -364,13 +364,13 @@ public class Instructor {
             else if (humanPotentialMoves.numLagging >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
                     case LAGGING:
-                        sb.append("That was one of the best moves. Even so, now your position has degraded somewhat.");
+                        sb.append("That was one of the best moves. Even so, your position is worse than your opponent's.");
                         break;
                     case WELL_BEHIND:
-                        sb.append("Your position has become much worse. You had moves that would have only degraded it somewhat.");
+                        sb.append("Your position is very bad. You had moves that would have only made it just worse than your opponent's.");
                         break;
                     case LOSING:
-                        sb.append("Your position is now very much worse. You had moves that would have only degraded it somewhat.");
+                        sb.append("Your position is losing. You had moves that would have only made it just worse than your opponent's.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -380,10 +380,10 @@ public class Instructor {
                 if (humanPotentialMoves.numWellBehind > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
                         case WELL_BEHIND:
-                            sb.append("Your position has become much worse. There was a move that would have only degraded it somewhat.");
+                            sb.append("Your position is very bad. There was a move that would have only made it just worse than your opponent's.");
                             break;
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had moves that would have only degraded it somewhat or made it only much worse instead of very much worse.");
+                            sb.append("Your position is losing. You had moves that would have only made it just worse than your opponent's or made it very bad but not losing.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -392,7 +392,7 @@ public class Instructor {
                 else {
                     switch (playedEvaluatedMove.evalCategory) {
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had a move that would have have only degraded it somewhat.");
+                            sb.append("Your position is losing. You had a move that would have have only made it just worse than your opponent's.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -402,10 +402,10 @@ public class Instructor {
             else if (humanPotentialMoves.numWellBehind >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
                     case WELL_BEHIND:
-                        sb.append("That was one of the best moves. But it doesn't help much -- your position has become much worse.");
+                        sb.append("That was one of the best moves. But it doesn't help much -- your position is very bad.");
                         break;
                     case LOSING:
-                        sb.append("Your position is now very much worse. You had moves that would have made it only much worse instead of very much worse.");
+                        sb.append("Your position is losing. You had moves that would have made it very bad but not losing.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -415,7 +415,7 @@ public class Instructor {
                 if (humanPotentialMoves.numLosing > 0) {
                     switch (playedEvaluatedMove.evalCategory) {
                         case LOSING:
-                            sb.append("Your position is now very much worse. You had a move that would have made it only much worse instead of very much worse.");
+                            sb.append("Your position is losing. You had a move that would have made it very bad but not losing.");
                             break;
                         default:
                             throw new RuntimeException("Failed to get an evaluation category for the human's move");
@@ -428,7 +428,7 @@ public class Instructor {
             else if (humanPotentialMoves.numLosing >= 2) {
                 switch (playedEvaluatedMove.evalCategory) {
                     case LOSING:
-                        sb.append("Your position is now very much worse. You had no other choices.");
+                        sb.append("Your position is losing -- you had no good moves.");
                         break;
                     default:
                         throw new RuntimeException("Failed to get an evaluation category for the human's move");
