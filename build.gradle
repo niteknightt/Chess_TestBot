@@ -44,7 +44,7 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    implementation 'niteknightt.chess:common:0.2.011'
+    implementation 'niteknightt.chess:common:0.2.015'
     implementation 'niteknightt.chess:uciclientmod:0.4'
     implementation 'niteknightt.chess:gameplay:0.2'
     implementation 'niteknightt.chess:lichessapi:0.2.004'
@@ -86,10 +86,10 @@ task prepareDirs {
             folder.mkdirs()
             mkdir("$runtimePath/settings")
             copy {
-                from "resources/settings.conf"
+                from "resources/niteknighttbot.conf"
                 into folder.toPath()
             }
-            new File("$runtimePath/settings", "settings.conf").text = ""
+            new File("$runtimePath/settings", "niteknighttbot.conf").text = ""
             mkdir("$runtimePath/appLogs")
             mkdir("$runtimePath/gameLogs")
             mkdir("$runtimePath/uciLogs")
@@ -101,7 +101,7 @@ task prepareDirs {
                 folder.mkdirs()
             }
             copy {
-                from "resources/settings.conf"
+                from "resources/niteknighttbot.conf"
                 into folder.toPath()
             }
             folder = new File("$runtimePath/appLogs")

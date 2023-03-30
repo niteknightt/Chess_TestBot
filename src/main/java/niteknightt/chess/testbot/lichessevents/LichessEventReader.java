@@ -1,10 +1,11 @@
-package niteknightt.chess.testbot;
+package niteknightt.chess.testbot.lichessevents;
 
 import com.google.gson.Gson;
 import niteknightt.chess.common.AppLogger;
 import niteknightt.chess.lichessapi.LichessEnums;
 import niteknightt.chess.lichessapi.LichessEvent;
 import niteknightt.chess.lichessapi.LichessInterface;
+import niteknightt.chess.testbot.BotManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,15 +20,15 @@ import java.util.Queue;
 public class LichessEventReader implements Runnable {
 
     protected boolean _done = false;
-    protected BotManager _botManager;
+    protected LichessEventHandler _eventHandler;
     protected Queue<LichessEvent> _events = new LinkedList<LichessEvent>();
 
     public boolean done() { return _done; }
     public void setDone() { _done = true; }
     public void setNotDone() { _done = false; }
 
-    public LichessEventReader(BotManager botManager) {
-        _botManager = botManager;
+    public LichessEventReader(LichessEventHandler eventHandler) {
+        _eventHandler = eventHandler;
     }
 
     public LichessEvent peekQueue() {
@@ -67,23 +68,24 @@ public class LichessEventReader implements Runnable {
             return;
         }
 
-        if (event.eventType.equals(LichessEnums.EventType.CHALLENGE)) {
-            _botManager.handleChallenge(event);
-        }
-        else if (event.eventType.equals(LichessEnums.EventType.CHALLENGE_CANCELED)) {
-            _botManager.handleChallengeCanceled(event);
-        }
-        else if (event.eventType.equals(LichessEnums.EventType.CHALLENGE_DECLINED)) {
-            _botManager.handleChallengeDeclined(event);
-        }
-        else if (event.eventType.equals(LichessEnums.EventType.GAME_START)) {
-            _botManager.handleGameStart(event);
-        }
-        else if (event.eventType.equals(LichessEnums.EventType.GAME_FINISH)) {
-            _botManager.handleGameFinish(event);
-        }
-        else {
-            AppLogger.getInstance().error("Unknown event type received: " + event.eventType);
+        switch (event.eventType) {
+            case CHALLENGE:
+                _eventHandler.handleChallenge(event);
+                break;
+            case CHALLENGE_CANCELED:
+                _eventHandler.handleChallengeCanceled(event);
+                break;
+            case CHALLENGE_DECLINED:
+                _eventHandler.handleChallengeDeclined(event);
+                break;
+            case GAME_START:
+                _eventHandler.handleGameStart(event);
+                break;
+            case GAME_FINISH:
+                _eventHandler.handleGameFinish(event);
+                break;
+            default:
+                throw new RuntimeException("Unknown Lichess event type received: " + event.eventType);
         }
     }
 

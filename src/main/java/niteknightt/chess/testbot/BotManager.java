@@ -1,10 +1,9 @@
 package niteknightt.chess.testbot;
 
 import niteknightt.chess.common.*;
-import niteknightt.chess.lichessapi.LichessApiException;
-import niteknightt.chess.lichessapi.LichessEnums;
-import niteknightt.chess.lichessapi.LichessEvent;
-import niteknightt.chess.lichessapi.LichessInterface;
+import niteknightt.chess.lichessapi.*;
+import niteknightt.chess.testbot.lichessevents.LichessEventHandler;
+import niteknightt.chess.testbot.lichessevents.LichessEventReader;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -21,8 +20,11 @@ public class BotManager implements Runnable {
     protected Map<String, Thread> _gameThreads;
     protected Map<String, Thread> _gameStateReaderThreads;
     protected Map<String, Date> _endedGames;
+
+    protected LichessEventHandler _eventHandler;
     protected LichessEventReader _eventReader;
     protected Thread _eventReaderThread;
+
     protected boolean _done;
     protected Lock _mainLock = new ReentrantLock(true);
 
@@ -37,6 +39,8 @@ public class BotManager implements Runnable {
     public void setNotDone() { _done = false; }
     public void setDone() { _done = true; }
     public boolean done() { return _done; }
+    public int getNumRunningChallenges() { return _numRunningChallenges; }
+    public void incrementNumRunningChallenges() { ++_numRunningChallenges; }
 
     public void init() {
         _games = new HashMap<String, BotGame>();
@@ -44,9 +48,12 @@ public class BotManager implements Runnable {
         _gameStateReaderThreads = new HashMap<String, Thread>();
         _endedGames = new HashMap<String, Date>();
         _numRunningChallenges = 0;
-        _eventReader = new LichessEventReader(this);
+
+        _eventHandler = new LichessEventHandler(this);
+        _eventReader = new LichessEventReader(_eventHandler);
         _eventReaderThread = new Thread(_eventReader);
         _eventReaderThread.start();
+
         setNotDone();
     }
 
@@ -138,153 +145,52 @@ public class BotManager implements Runnable {
         try { Thread.sleep(500); } catch (InterruptedException interruptException) { }
     }
 
-    public void handleChallenge(LichessEvent event) {
-        try {
-            _mainLock.lock();
+    public BotGame createGame(LichessChallenge challenge) {
+        BotGame game = BotGame.createGameForChallenge(challenge);
+        Thread gameThread = new Thread(game);
+        gameThread.start();
 
-            try {
-                if (!event.challenge.variant.key.equals(LichessEnums.VariantKey.STANDARD)) {
-                    AppLogger.getInstance().info("Declining challenge ID " + event.challenge.id + " because it was not standard chess.");
-                    LichessInterface.declineChallenge(event.challenge.id, "standard");
-                    return;
-                }
-                if (_numRunningChallenges >= MAX_CONCURRENT_CHALLENGES) {
-                    AppLogger.getInstance().info("Declining challenge ID " + event.challenge.id + " because there are too many games in progress.");
-                    LichessInterface.declineChallenge(event.challenge.id, "later");
-                    return;
-                }
-                if ((event.challenge.challenger.title == null || !event.challenge.challenger.title.equals("BOT")) &&
-                        event.challenge.rated) {
-                    // Rated challenge from human - decline
-                    AppLogger.getInstance().info("Declining challenge ID " + event.challenge.id + " because it is a rated challenge from a human.");
-                    LichessInterface.declineChallenge(event.challenge.id, "casual");
-                    return;
-                }
-                if (event.challenge.challenger.title.equals("BOT")) {
-                    // Challenge from bot - decline
-                    AppLogger.getInstance().info("Declining challenge ID " + event.challenge.id + " because it is a from a bot.");
-                    LichessInterface.declineChallenge(event.challenge.id, "noBot");
-                    return;
-                }
+        _games.put(challenge.id, game);
+        _gameThreads.put(challenge.id, gameThread);
 
-                // UNCOMMENT THIS CODE WHILE WORKING ON THE PROGRAM.
-                // COMMENT IT WHEN YOU WANT THE BOT TO ACCEPT CHALLENGES.
+        return game;
+    }
 
-//                if (((event.challenge.challenger.title != null && event.challenge.challenger.title.equals("BOT"))) || !event.challenge.challenger.id.equals("niteknightt")) {
-//                    AppLogger.getInstance().info("Declining challenge ID " + event.challenge.id + " because not accepting challenges at this time.");
-//                    LichessInterface.declineChallenge(event.challenge.id, "later");
-//                    return;
-//                }
-            }
-            catch (LichessApiException e) {
-                AppLogger.getInstance().error("Got LichessApiException while trying to decline challenge");
-            }
+    public boolean startGame(String gameId) {
+        if (_games.containsKey(gameId)) {
+            BotGame game = _games.get(gameId);
+            game.setStarted();
 
-            ++_numRunningChallenges;
+            LichessGameStateReader gameStateReader = new LichessGameStateReader(game);
+            Thread gameStateReaderThread = new Thread(gameStateReader);
+            gameStateReaderThread.start();
+            _gameStateReaderThreads.put(gameId, gameStateReaderThread);
 
-            BotGame game = BotGame.createGameForChallenge(event.challenge);
-            Thread gameThread = new Thread(game);
-            gameThread.start();
-
-            _games.put(event.challenge.id, game);
-            _gameThreads.put(event.challenge.id, gameThread);
-
-            try {
-                LichessInterface.acceptChallenge(event.challenge.id);
-            }
-            catch (LichessApiException e) {
-                AppLogger.getInstance().error("Got LichessApiException while trying to accept challenge");
-                game.setFinished();
-                return;
-            }
-
-            AppLogger.getInstance().info("Accepted challenge ID " + event.challenge.id + " -- currently there are " + _numRunningChallenges + " running games");
+            return true;
         }
-        finally {
-            _mainLock.unlock();
+        else {
+            return false;
         }
     }
 
-    public void handleChallengeCanceled(LichessEvent event) {
-        try {
-            _mainLock.lock();
-
-            if (_games.containsKey(event.challenge.id)) {
-                BotGame game = _games.get(event.challenge.id);
-                game.forceEnd();
-                AppLogger.getInstance().info("Canceled challenge ID " + event.challenge.id + " -- currently there are " + _numRunningChallenges + " running games");
-            }
-            else {
-                AppLogger.getInstance().error("Got cancelation of challenge ID " + event.challenge.id + " but it is not in the list of games");
-            }
+    public boolean finishGame(String gameId) {
+        if (_games.containsKey(gameId)) {
+            _games.get(gameId).setFinished();
+            return true;
         }
-        finally {
-            _mainLock.unlock();
+        else {
+            return false;
         }
     }
 
-    public void handleChallengeDeclined(LichessEvent event) {
-        AppLogger.getInstance().error("Got challenge declined for challenge ID " + event.challenge.id + " -- don't know what to do with this");
-    }
-
-    public void handleGameStart(LichessEvent event) {
-        try {
-            _mainLock.lock();
-
-            if (_games.containsKey(event.game.id)) {
-                BotGame game = _games.get(event.game.id);
-                game.setStarted();
-
-                LichessGameStateReader gameStateReader = new LichessGameStateReader(game);
-                Thread gameStateReaderThread = new Thread(gameStateReader);
-                gameStateReaderThread.start();
-                _gameStateReaderThreads.put(event.game.id, gameStateReaderThread);
-
-                AppLogger.getInstance().info("Got game start event for game ID " + event.game.id);
-            }
-            else {
-                AppLogger.getInstance().error("Got game start event for game ID " + event.game.id + " but it is not in the list of games");
-                try {
-                    LichessInterface.writeChat(event.game.id, "Lichess tells me I'm supposed to play this game, but I don't recognize it, so I am resigning. Bye.");
-                }
-                catch (LichessApiException e) { }
-                try {
-                    LichessInterface.resignGame(event.game.id);
-                }
-                catch (LichessApiException e) {
-                    AppLogger.getInstance().warning("Got LichessApiException while trying to resign a game that I could not start");
-                }
-            }
+    public boolean forceGameEnd(LichessChallenge challenge) {
+        if (_games.containsKey(challenge.id)) {
+            BotGame game = _games.get(challenge.id);
+            game.forceEnd();
+            return true;
         }
-        finally {
-            _mainLock.unlock();
-        }
-    }
-
-    public void handleGameFinish(LichessEvent event) {
-        try {
-            _mainLock.lock();
-
-            if (_games.containsKey(event.game.id)) {
-                _games.get(event.game.id).setFinished();
-                AppLogger.getInstance().info("Got game finish event for game ID " + event.game.id);
-            }
-            else {
-                AppLogger.getInstance().error("Got game finish event for game ID " + event.game.id + " but it is not in the list of games");
-                try {
-                    LichessInterface.writeChat(event.game.id, "Lichess tells me I'm supposed to finish this game, but I don't recognize it, so I am resigning. Bye.");
-                }
-                catch (LichessApiException e) { }
-                try {
-                    LichessInterface.resignGame(event.game.id);
-                }
-                catch (LichessApiException e) {
-                    AppLogger.getInstance().warning("Got LichessApiException while trying to resign a game that I could not finish");
-                }
-            }
-        }
-        finally {
-            _mainLock.unlock();
+        else {
+            return false;
         }
     }
 }
