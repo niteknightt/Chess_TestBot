@@ -160,6 +160,12 @@ public class BotManager implements Runnable {
                     LichessInterface.declineChallenge(event.challenge.id, "casual");
                     return;
                 }
+                if (event.challenge.challenger.title.equals("BOT")) {
+                    // Challenge from bot - decline
+                    AppLogger.getInstance().info("Declining challenge ID " + event.challenge.id + " because it is a from a bot.");
+                    LichessInterface.declineChallenge(event.challenge.id, "noBot");
+                    return;
+                }
 
                 // UNCOMMENT THIS CODE WHILE WORKING ON THE PROGRAM.
                 // COMMENT IT WHEN YOU WANT THE BOT TO ACCEPT CHALLENGES.
