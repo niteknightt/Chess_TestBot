@@ -1,10 +1,7 @@
 package niteknightt.chess.testbot;
 
 import com.google.gson.Gson;
-import niteknightt.chess.common.AppLogger;
-import niteknightt.chess.common.Constants;
-import niteknightt.chess.common.Enums;
-import niteknightt.chess.common.Helpers;
+import niteknightt.chess.common.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +18,7 @@ public class OpponentProperties {
     public String id;
     public Enums.EngineAlgorithm algorithm;
 
-    public static String OPPONENT_PROPS_FILE_NAME = System.getenv(Constants.ENV_VAR_RUNTIME_FILE_PATH)
+    public static String OPPONENT_PROPS_FILE_NAME = Settings.getInstance().getRuntimeDirectory()
         + File.separator
         + Constants.PERSISTENCE_SUBDIR
         + File.separator

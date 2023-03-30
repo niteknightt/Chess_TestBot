@@ -1,9 +1,6 @@
 package niteknightt.chess.testbot;
 
-import niteknightt.chess.common.Common;
-import niteknightt.chess.common.Enums;
-import niteknightt.chess.common.GameLogger;
-import niteknightt.chess.common.AppLogger;
+import niteknightt.chess.common.*;
 import niteknightt.chess.lichessapi.LichessApiException;
 import niteknightt.chess.lichessapi.LichessEnums;
 import niteknightt.chess.lichessapi.LichessEvent;
@@ -42,8 +39,6 @@ public class BotManager implements Runnable {
     public boolean done() { return _done; }
 
     public void init() {
-        AppLogger.setLogLevel = Enums.LogLevel.DEBUG;
-        AppLogger.setAlsoToStdout = true;
         _games = new HashMap<String, BotGame>();
         _gameThreads = new HashMap<String, Thread>();
         _gameStateReaderThreads = new HashMap<String, Thread>();
