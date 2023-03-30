@@ -31,9 +31,6 @@ public class BotManager implements Runnable {
 
     protected int _numRunningChallenges;
 
-    // Moved gamelogger to game -- new one created for each game.
-    //protected GameLogger gameLogger = new GameLogger(Common.GAME_LOG_LEVEL);
-
     public BotManager() {
     }
 
@@ -44,10 +41,10 @@ public class BotManager implements Runnable {
     public void incrementNumRunningChallenges() { ++_numRunningChallenges; }
 
     public void init() {
-        _games = new HashMap<String, BotGame>();
-        _gameThreads = new HashMap<String, Thread>();
-        _gameStateReaderThreads = new HashMap<String, Thread>();
-        _endedGames = new HashMap<String, Date>();
+        _games = new HashMap<>();
+        _gameThreads = new HashMap<>();
+        _gameStateReaderThreads = new HashMap<>();
+        _endedGames = new HashMap<>();
         _numRunningChallenges = 0;
 
         _eventHandler = new LichessEventHandler(this);
@@ -94,31 +91,32 @@ public class BotManager implements Runnable {
                             AppLogger.getInstance().info("Game " + gameId + " removed");
                         }
                         catch (Exception ex) {
-                            AppLogger.getInstance().error("Exception while removing game thread: " + ex.toString());
+                            AppLogger.getInstance().error("Exception while removing game thread: " + ex);
                         }
                         try {
                             _games.remove(gameId);
                         }
                         catch (Exception ex) {
-                            AppLogger.getInstance().error("Exception while removing game: " + ex.toString());
+                            AppLogger.getInstance().error("Exception while removing game: " + ex);
                         }
                         try {
                             _gameStateReaderThreads.remove(gameId);
                         }
                         catch (Exception ex) {
-                            AppLogger.getInstance().error("Exception while removing game reader thread: " + ex.toString());
+                            AppLogger.getInstance().error("Exception while removing game reader thread: " + ex);
                         }
                     }
                 }
             }
             catch (Exception ex) {
-                AppLogger.getInstance().error("Exception while running main loop in BotManager: " + ex.toString());
+                AppLogger.getInstance().error("Exception while running main loop in BotManager: " + ex);
             }
             finally {
                 _mainLock.unlock();
             }
 
-            try { Thread.sleep(500); } catch (InterruptedException interruptException) { }
+            try { Thread.sleep(500); } catch (InterruptedException interruptException) { // do nothing
+            }
         }
 
         AppLogger.getInstance().info("Closing BotManager");
@@ -143,7 +141,8 @@ public class BotManager implements Runnable {
             }
         }
 
-        try { Thread.sleep(500); } catch (InterruptedException interruptException) { }
+        try { Thread.sleep(500); } catch (InterruptedException interruptException) { // do nothing
+        }
     }
 
     public BotGame createGame(LichessChallenge challenge) {
