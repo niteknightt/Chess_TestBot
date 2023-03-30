@@ -1,4 +1,4 @@
-package niteknightt.chess.testbot.tests;
+package niteknightt.chess.testbot;
 
 import niteknightt.chess.testbot.EvaluatedMove;
 

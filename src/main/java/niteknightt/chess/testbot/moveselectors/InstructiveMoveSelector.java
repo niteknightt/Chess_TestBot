@@ -2,6 +2,7 @@ package niteknightt.chess.testbot.moveselectors;
 
 import niteknightt.chess.testbot.MoveSelectorException;
 import niteknightt.chess.testbot.EvaluatedMove;
+import niteknightt.chess.testbot.PotentialMoves;
 import niteknightt.chess.testbot.StockfishClient;
 import niteknightt.chess.common.Enums;
 import niteknightt.chess.common.GameLogger;
@@ -11,6 +12,10 @@ import niteknightt.chess.gameplay.Move;
 import java.util.*;
 
 public class InstructiveMoveSelector extends MoveSelector {
+
+    protected boolean _isOpportunityForHuman = false;
+
+    public boolean isOpportunityForHuman() { return _isOpportunityForHuman; }
 
     public InstructiveMoveSelector(Random random, Enums.EngineAlgorithm algorithm, StockfishClient stockfishClient, GameLogger log, String gameId) {
         super(random, algorithm, stockfishClient, log, gameId);
@@ -54,20 +59,62 @@ public class InstructiveMoveSelector extends MoveSelector {
                 if (movesWithEval.size() != legalMoves.size()) {
                     _log.error(_gameId, "moveselector", "Number of moves from stockfish (" + movesWithEval.size() + ") is not the same as number of legal moves (" + legalMoves.size() + ")");
                 }
-                int closestIndex = -1;
-                double diff = 1000.0;
-                for (int i = 0; i < movesWithEval.size(); ++i) {
-                    if (Math.abs(movesWithEval.get(i).eval) < diff) {
-                        diff = Math.abs(movesWithEval.get(i).eval);
-                        closestIndex = i;
+                int opportunityMoveIndex = -1;
+                PotentialMoves potentialMoves = new PotentialMoves(movesWithEval);
+                if (potentialMoves.numVeryMuchWorseMoves > 0 || potentialMoves.numMuchWorseMoves > 0) {
+                    for (int moveIndex = movesWithEval.size() - 1; moveIndex >= movesWithEval.size() - potentialMoves.numVeryMuchWorseMoves - potentialMoves.numMuchWorseMoves; --moveIndex) {
+                        EvaluatedMove currentEvaluatedMove = movesWithEval.get(moveIndex);
+                        Board afterMoveBoard = board.clone();
+                        afterMoveBoard.handleMoveForGame(new Move(currentEvaluatedMove.uci, afterMoveBoard));
+                        List<EvaluatedMove> humanPossibleMoves = _stockfishClient.calcMoves(board.getLegalMoves().size(), 2000, board.whosTurnToGo());
+                        PotentialMoves potentialHumanMoves = new PotentialMoves(humanPossibleMoves);
+                        if (humanPossibleMoves.size() > 1 &&
+                                potentialHumanMoves.numVeryMuchBetterMoves + potentialHumanMoves.numMuchBetterMoves == 1 &&
+                                isNotACapture(humanPossibleMoves.get(0), afterMoveBoard) &&
+                                isNotAMateIn(humanPossibleMoves.get(0))) {
+                            opportunityMoveIndex = moveIndex;
+                            break;
+                        }
                     }
                 }
-                bestMoveUciFormat = movesWithEval.get(closestIndex).uci;
+
+                if (opportunityMoveIndex != -1) {
+                    bestMoveUciFormat = movesWithEval.get(opportunityMoveIndex).uci;
+                    _isOpportunityForHuman = true;
+                }
+                else {
+                    int closestIndex = -1;
+                    double diff = 1000.0;
+                    for (int i = 0; i < movesWithEval.size(); ++i) {
+                        if (Math.abs(movesWithEval.get(i).eval) < diff) {
+                            diff = Math.abs(movesWithEval.get(i).eval);
+                            closestIndex = i;
+                        }
+                    }
+                    if (closestIndex == -1) {
+                        // This can happen if all the possible moved evaluate to matein.
+                        // There might be other cases where this can happen, too. I don't know.
+                        bestMoveUciFormat = movesWithEval.get(0).uci;
+                    }
+                    else {
+                        bestMoveUciFormat = movesWithEval.get(closestIndex).uci;
+                    }
+                    _isOpportunityForHuman = false;
+                }
                 _log.debug(_gameId, "moveselector", "Best move to keep close to eval zero: " + bestMoveUciFormat);
             }
         }
         Move engineMove = new Move(bestMoveUciFormat, board);
         return engineMove;
+    }
+
+    public static boolean isNotACapture(EvaluatedMove evaluatedMove, Board board) {
+        Move move = new Move(evaluatedMove.uci, board);
+        return !move.isCapture();
+    }
+
+    public static boolean isNotAMateIn(EvaluatedMove evaluatedMove) {
+        return !evaluatedMove.ismate;
     }
 
     public List<EvaluatedMove> getAllMoves(Board board) {

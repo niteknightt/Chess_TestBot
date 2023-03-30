@@ -6,7 +6,6 @@ import niteknightt.chess.gameplay.Board;
 import niteknightt.chess.gameplay.Move;
 import niteknightt.chess.lichessapi.LichessApiException;
 import niteknightt.chess.lichessapi.LichessInterface;
-import niteknightt.chess.testbot.tests.PotentialMoves;
 
 import java.util.List;
 
@@ -50,7 +49,23 @@ public class Instructor {
         //       one of these and there were no moves MUCH_BETTER or SOMEWHAT_BETTER.
         //   * If human did not choose best move, but chosen move is 1 category
 
+        int numTotalMoves = game.moves().size();
+        int moveNumber = numTotalMoves / 2;
+        if (game.challengerColor() == Enums.Color.WHITE) {
+            if ((numTotalMoves & 1) == 0) {
+                throw new RuntimeException("Expected odd number of moves but got even");
+            }
+            ++moveNumber;
+        }
+        else if ((numTotalMoves & 1) != 0) {
+            throw new RuntimeException("Expected even number of moves but got odd");
+        }
+
         StringBuilder sb = new StringBuilder();
+        sb.append(moveNumber);
+        sb.append(". ");
+        sb.append(game.moves().get(game.moves().size() - 1).algebraicFormat());
+        sb.append(": ");
 
         if (game._humanPotentialMoves.size() == 0) {
             return true;
@@ -64,6 +79,31 @@ public class Instructor {
 
         if (playedMove.uciFormat().equals(humanPotentialMoves.evaluatedMoves.get(0).uci)) {
             sb.append("That was the best move!");
+            switch (humanPotentialMoves.evaluatedMoves.get(0).evalCategory) {
+                case VERY_MUCH_BETTER_THAN_BEFORE:
+                    sb.append(" Your position is now very much better than before.");
+                    break;
+                case MUCH_BETTER_THAN_BEFORE:
+                    sb.append(" Your position is very much better than before.");
+                    break;
+                case SOMEWHAT_BETTER_THAN_BEFORE:
+                    sb.append(" Your position is now somewhat better than before.");
+                    break;
+                case SAME_AS_BEFORE:
+                    sb.append(" Your position remains about the same as before.");
+                    break;
+                case SOMEWHAT_WORSE_THAN_BEFORE:
+                    sb.append(" But unfortunately, your position is somewhat worse than before.");
+                    break;
+                case MUCH_WORSE_THAN_BEFORE:
+                    sb.append(" Alas, your position is much worse than before.");
+                    break;
+                case VERY_MUCH_WORSE_THAN_BEFORE:
+                    sb.append(" Either way, though, your position is very much worse than before.");
+                    break;
+                default:
+                    throw new RuntimeException("The category for best move was incorrect");
+            }
         }
         else {
             EvaluatedMove playedEvaluatedMove = null;
@@ -80,149 +120,325 @@ public class Instructor {
             }
 
             if (humanPotentialMoves.numVeryMuchBetterMoves >= 2) {
-                if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.VERY_MUCH_BETTER_THAN_BEFORE) {
-                    sb.append("Well played!");
-                }
-                else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.MUCH_BETTER_THAN_BEFORE) {
-                    sb.append("Very good, but there were even better moves.");
-                }
-                else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_BETTER_THAN_BEFORE) {
-                    sb.append("Not bad, but there were even better moves.");
-                }
-                else {
-                    sb.append("You had much better options.");
+                switch (playedEvaluatedMove.evalCategory) {
+                    case VERY_MUCH_BETTER_THAN_BEFORE:
+                        sb.append("That was one of the best moves. Now your position is very much better than before.");
+                        break;
+                    case MUCH_BETTER_THAN_BEFORE:
+                        sb.append("You much improved your position from before, but there were even better moves that would have greatly improved it.");
+                        break;
+                    case SOMEWHAT_BETTER_THAN_BEFORE:
+                        sb.append("You improved your position from before, but there were even better moves that would have greatly improved it.");
+                        break;
+                    case SAME_AS_BEFORE:
+                        sb.append("You missed moves that would have greatly improved your position. Instead, it remains about the same.");
+                        break;
+                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                        sb.append("Your position has degraded somewhat. You had moves that would have greatly improved it.");
+                        break;
+                    case MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position has become much worse. You had moves that would have greatly improved it.");
+                        break;
+                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position is now very much worse. You had moves that would have greatly improved it.");
+                        break;
+                    default:
+                        throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
             else if (humanPotentialMoves.numVeryMuchBetterMoves == 1) {
                 if (humanPotentialMoves.numMuchBetterMoves > 0) {
-                    if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.MUCH_BETTER_THAN_BEFORE) {
-                        sb.append("Very good, but there was an even better move.");
-                    }
-                    else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_BETTER_THAN_BEFORE) {
-                        sb.append("Not bad, but there were even better moves.");
-                    }
-                    else {
-                        sb.append("You had much better options.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case MUCH_BETTER_THAN_BEFORE:
+                            sb.append("You much improved your position from before, but there was an even better move that would have greatly improved it.");
+                            break;
+                        case SOMEWHAT_BETTER_THAN_BEFORE:
+                            sb.append("You improved your position from before, but there were even better moves that would have greatly or much improved it.");
+                            break;
+                        case SAME_AS_BEFORE:
+                            sb.append("You missed moves that would have greatly or much improved your position. Instead, it remains about the same.");
+                            break;
+                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                            sb.append("Your position has degraded somewhat. You had moves that would have greatly or much improved it.");
+                            break;
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. You had moves that would have greatly or much improved it.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had moves that would have greatly or much improved it.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
                     }
                 }
                 else {
-                    if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_BETTER_THAN_BEFORE) {
-                        sb.append("Not bad, but there was an even better move.");
-                    }
-                    else {
-                        sb.append("You had at least one much better option.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case SOMEWHAT_BETTER_THAN_BEFORE:
+                            sb.append("You improved your position from before, but there was an even better move that would have greatly improved it.");
+                            break;
+                        case SAME_AS_BEFORE:
+                            sb.append("You missed a move that would have greatly improved your position. Instead, it remains about the same.");
+                            break;
+                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                            sb.append("Your position has degraded somewhat You had a move that would have greatly improved it.");
+                            break;
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse You had a move that would have greatly improved it.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse You had a move that would have greatly improved it.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
                     }
                 }
             }
             else if (humanPotentialMoves.numMuchBetterMoves >= 2) {
-                if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.MUCH_BETTER_THAN_BEFORE) {
-                    sb.append("Well played!");
-                }
-                else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_BETTER_THAN_BEFORE) {
-                    sb.append("Nice, but there were even better moves.");
-                }
-                else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SAME_AS_BEFORE) {
-                    sb.append("You didn't lose ground, but there were better moves.");
-                }
-                else {
-                    sb.append("You had much better options.");
+                switch (playedEvaluatedMove.evalCategory) {
+                    case MUCH_BETTER_THAN_BEFORE:
+                        sb.append("That was one of the best moves. Now your position is much better than before.");
+                        break;
+                    case SOMEWHAT_BETTER_THAN_BEFORE:
+                        sb.append("You improved your position from before, but there were even better moves that would have much improved it.");
+                        break;
+                    case SAME_AS_BEFORE:
+                        sb.append("You missed moves that would have much improved your position. Instead, it remains about the same.");
+                        break;
+                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                        sb.append("Your position has degraded somewhat. You had moves that would have much improved it.");
+                        break;
+                    case MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position has become much worse. You had moves that would have much improved it.");
+                        break;
+                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position is now very much worse You had moves that would have much improved it.");
+                        break;
+                    default:
+                        throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
             else if (humanPotentialMoves.numMuchBetterMoves == 1) {
                 if (humanPotentialMoves.numSomewhatBetterMoves > 0) {
-                    if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_BETTER_THAN_BEFORE) {
-                        sb.append("Nice, but there was an even better move.");
-                    }
-                    else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SAME_AS_BEFORE) {
-                        sb.append("You didn't lose ground, but there were better moves.");
-                    }
-                    else {
-                        sb.append("You had much better options.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case SOMEWHAT_BETTER_THAN_BEFORE:
+                            sb.append("You improved your position from before, but there was an even better move that would have much improved it.");
+                            break;
+                        case SAME_AS_BEFORE:
+                            sb.append("You missed moves that would have improved or much improved your position. Instead, it remains about the same.");
+                            break;
+                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                            sb.append("Your position has degraded somewhat You had moves that would have improved or much improved it.");
+                            break;
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. You had moves that would have improved or much improved it.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had moves that would have improved or much improved it.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
                     }
                 }
                 else {
-                    if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SAME_AS_BEFORE) {
-                        sb.append("You didn't lose ground, but there was a better move.");
-                    }
-                    else {
-                        sb.append("You had at least one much better option.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case SAME_AS_BEFORE:
+                            sb.append("You missed a move that would have much improved your position. Instead, it remains about the same.");
+                            break;
+                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                            sb.append("Your position has degraded somewhat You had a move that would have much improved it.");
+                            break;
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. You had a move that would have much improved it.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had a move that would have much improved it.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
                     }
                 }
             }
             else if (humanPotentialMoves.numSomewhatBetterMoves >= 2) {
-                if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_BETTER_THAN_BEFORE) {
-                    sb.append("Well played!");
-                }
-                else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SAME_AS_BEFORE) {
-                    sb.append("That's OK, but there were better moves.");
-                }
-                else {
-                    sb.append("You had much better options.");
+                switch (playedEvaluatedMove.evalCategory) {
+                    case SOMEWHAT_BETTER_THAN_BEFORE:
+                        sb.append("That was one of the best moves. Now your position is better than before.");
+                        break;
+                    case SAME_AS_BEFORE:
+                        sb.append("You missed moves that would have improved your position. Instead, it remains about the same.");
+                        break;
+                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                        sb.append("Your position has degraded somewhat. You had moves that would have improved it.");
+                        break;
+                    case MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position has become much worse. You had moves that would have improved it.");
+                        break;
+                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position is now very much worse. You had moves that would have improved it.");
+                        break;
+                    default:
+                        throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
             else if (humanPotentialMoves.numSomewhatBetterMoves == 1) {
                 if (humanPotentialMoves.numSameMoves > 0) {
-                    if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SAME_AS_BEFORE) {
-                        sb.append("That's OK, but there was a better move.");
-                    }
-                    else {
-                        sb.append("You had much better options.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case SAME_AS_BEFORE:
+                            sb.append("You kept your position about the same, but there was a better move that would have improved it.");
+                            break;
+                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                            sb.append("Your position has degraded somewhat. You had moves that would have improved it or kept it the same.");
+                            break;
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. You had moves that would have improved it or kept it the same.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had moves that would have improved it or kept it the same.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
                     }
                 }
                 else {
-                    sb.append("You had at least one better option.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                            sb.append("Your position has degraded somewhat. You had a move that would have improved it.");
+                            break;
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. You had a move that would have improved it.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had a move that would have improved it.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
+                    }
                 }
             }
             else if (humanPotentialMoves.numSameMoves >= 2) {
-                if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SAME_AS_BEFORE) {
-                    sb.append("You found one of the ways to hold your current eval.");
-                }
-                else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_WORSE_THAN_BEFORE) {
-                    sb.append("You're losing some ground -- you had better options to hold your eval.");
-                }
-                else {
-                    sb.append("You had much better options.");
+                switch (playedEvaluatedMove.evalCategory) {
+                    case SAME_AS_BEFORE:
+                        sb.append("That was one of the best moves. Now your position is about the same as before.");
+                        break;
+                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                        sb.append("Your position has degraded somewhat. You had moves that would have kept it about the same as before.");
+                        break;
+                    case MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position has become much worse. You had moves that would have kept it about the same as before.");
+                        break;
+                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position is now very much worse. You had moves that would have kept it about the same as before.");
+                        break;
+                    default:
+                        throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
             else if (humanPotentialMoves.numSameMoves == 1) {
                 if (humanPotentialMoves.numSomewhatWorseMoves > 0) {
-                    if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_WORSE_THAN_BEFORE) {
-                        sb.append("You're losing some ground -- you had a better move to hold your eval.");
-                    }
-                    else {
-                        sb.append("You had better options.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case SOMEWHAT_WORSE_THAN_BEFORE:
+                            sb.append("Your position has degraded somewhat. There was a move that would have kept it the same as before.");
+                            break;
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. You had moves that would have kept it the same as before or only degraded it somewhat.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had moves that would have kept it the same as before or only degraded it somewhat.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
                     }
                 }
                 else {
-                    sb.append("You had at least one better option.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. You had a move that would have kept it the same as before.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had a move that would have kept it the same as before.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
+                    }
                 }
             }
             else if (humanPotentialMoves.numSomewhatWorseMoves >= 2) {
-                if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.SOMEWHAT_WORSE_THAN_BEFORE) {
-                    sb.append("You found one of the ways to slow the slide down.");
-                }
-                else if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.MUCH_WORSE_THAN_BEFORE) {
-                    sb.append("You're quite worse now -- you had better options to slow the slide down.");
-                }
-                else {
-                    sb.append("You had much better options.");
+                switch (playedEvaluatedMove.evalCategory) {
+                    case SOMEWHAT_WORSE_THAN_BEFORE:
+                        sb.append("That was one of the best moves. Even so, now your position has degraded somewhat.");
+                        break;
+                    case MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position has become much worse. You had moves that would have only degraded it somewhat.");
+                        break;
+                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position is now very much worse. You had moves that would have only degraded it somewhat.");
+                        break;
+                    default:
+                        throw new RuntimeException("Failed to get an evaluation category for the human's move");
                 }
             }
             else if (humanPotentialMoves.numSomewhatWorseMoves == 1) {
                 if (humanPotentialMoves.numMuchWorseMoves > 0) {
-                    if (playedEvaluatedMove.evalCategory == Enums.MoveEvalCategory.MUCH_WORSE_THAN_BEFORE) {
-                        sb.append("You're quite worse now -- you had a better option to slow the slide down.");
-                    }
-                    else {
-                        sb.append("You had better options.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position has become much worse. There was a move that would have only degraded it somewhat.");
+                            break;
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had moves that would have only degraded it somewhat or made it only much worse instead of very much worse.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
                     }
                 }
                 else {
-                    sb.append("You had only one option to slow the slide down.");
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had a move that would have have only degraded it somewhat.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
+                    }
                 }
             }
+            else if (humanPotentialMoves.numMuchWorseMoves >= 2) {
+                switch (playedEvaluatedMove.evalCategory) {
+                    case MUCH_WORSE_THAN_BEFORE:
+                        sb.append("That was one of the best moves. But it doesn't help much -- your position has become much worse.");
+                        break;
+                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position is now very much worse. You had moves that would have made it only much worse instead of very much worse.");
+                        break;
+                    default:
+                        throw new RuntimeException("Failed to get an evaluation category for the human's move");
+                }
+            }
+            else if (humanPotentialMoves.numMuchWorseMoves == 1) {
+                if (humanPotentialMoves.numVeryMuchWorseMoves > 0) {
+                    switch (playedEvaluatedMove.evalCategory) {
+                        case VERY_MUCH_WORSE_THAN_BEFORE:
+                            sb.append("Your position is now very much worse. You had a move that would have made it only much worse instead of very much worse.");
+                            break;
+                        default:
+                            throw new RuntimeException("Failed to get an evaluation category for the human's move");
+                    }
+                }
+                else {
+                    throw new RuntimeException("This case should not happen");
+                }
+            }
+            else if (humanPotentialMoves.numVeryMuchWorseMoves >= 2) {
+                switch (playedEvaluatedMove.evalCategory) {
+                    case VERY_MUCH_WORSE_THAN_BEFORE:
+                        sb.append("Your position is now very much worse. You had no other choices.");
+                        break;
+                    default:
+                        throw new RuntimeException("Failed to get an evaluation category for the human's move");
+                }
+            }
+            else if (humanPotentialMoves.numMuchWorseMoves == 1) {
+                throw new RuntimeException("This case should not happen");
+            }
             else {
-                sb.append("Not much you could do in this situation -- all moves lead to a worse position.");
+                throw new RuntimeException("This case should not happen");
             }
         }
 

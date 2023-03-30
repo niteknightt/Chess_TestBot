@@ -56,6 +56,9 @@ public abstract class BotGame implements Runnable {
         initGame();
     }
 
+    public List<Move> moves() { return _moves; }
+    public Enums.Color challengerColor() { return _challengerColor; }
+
     /**
      * Initializes data structures after accepting a challenge from another Lichess user.
      */
